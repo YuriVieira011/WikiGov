@@ -1,19 +1,94 @@
 <%- include("Partials/header") %>
 <%- include("Partials/nav") %>
-<div class="container mt-5">
-  <div class="p-5 mb-4 bg-light rounded-3">
-    <div class="container-fluid py-4">
-      <h1 class="display-5 fw-bold">Sistema de Cadastro (Rogério & Nathalia)</h1>
 
-      <p class="col-md-8 fs-5">
-        Gerenciamento de:
-      </p>
+<link rel="stylesheet" href="/CSS/index.css">
+<div class="container">
+  <main class="flex-fill">
 
-      <a href="/categorias" class="btn btn-primary btn-lg"> Categorias </a>
-      <a href="/clientes" class="btn btn-primary btn-lg"> Clientes </a>
-      <a href="/fornecedores" class="btn btn-primary btn-lg"> Fornecedores </a>
-      <a href="/produtos" class="btn btn-primary btn-lg"> Produtos </a>
-    </div>
-  </div>
+    <!-- ATALHOS RÁPIDOS: Jornadas do Cidadão -->
+     <br>
+    <section class="mb-5">
+      <h2 class="h4 fw-bold mb-4 border-bottom pb-2">O que você deseja fazer agora?</h2>
+      <div class="row g-3">
+        <div class="col-md-3 col-sm-6">
+          <div class="card h-100 border-0 shadow-sm text-center p-3 hover-card">
+            <div class="fs-1 text-primary mb-2">📄</div>
+            <h3 class="h6 fw-bold">Documentos Básicos</h3>
+            <p class="small text-muted mb-0">Como emitir CIN, Passaporte, Titulo de Eleitor</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="card h-100 border-0 shadow-sm text-center p-3 hover-card">
+            <div class="fs-1 text-primary mb-2">🏥</div>
+            <h3 class="h6 fw-bold">Saúde &amp; SUS</h3>
+            <p class="small text-muted mb-0">Atendimento, medicamentos e direitos do paciente</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="card h-100 border-0 shadow-sm text-center p-3 hover-card">
+            <div class="fs-1 text-primary mb-2">💼</div>
+            <h3 class="h6 fw-bold">Trabalho &amp; Impostos</h3>
+            <p class="small text-muted mb-0">CLT, MEI, Direitos Trabalhistas e Imposto de Renda</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="card h-100 border-0 shadow-sm text-center p-3 hover-card">
+            <div class="fs-1 text-primary mb-2">🎓</div>
+            <h3 class="h6 fw-bold">Educação &amp; Cursos</h3>
+            <p class="small text-muted mb-0">ENEM, Prouni, Sisu e vagas em creches</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO DE CONTEÚDO EXPANSÍVEL (FAQ / TÓPICOS) -->
+    <section class="mb-5">
+      <h2 class="h4 fw-bold mb-4 border-bottom pb-2">Dúvidas Frequentes sobre o Governo</h2>
+      
+      <div class="d-flex flex-column gap-3">
+        
+        <!-- Item 1 com Popover / Dicionário embutido -->
+        <details class="border rounded p-3 bg-white shadow-sm">
+          <summary class="fw-bold aba-style fs-5 text-dark" style="cursor: pointer;">
+            Como uma lei nova me afeta na prática?
+          </summary>
+          <div class="mt-3 pt-3 border-top text-secondary">
+            Quando o Congresso aprova um projeto, ele vai para o Presidente 
+            <span class="text-primary fw-semibold term-dict" 
+                  data-bs-toggle="popover" 
+                  data-bs-trigger="hover focus" 
+                  data-bs-title="Sancionar" 
+                  data-bs-content="Ato em que o Presidente aprova uma nova lei aprovada pelos parlamentares.">
+              sancionar
+            </span>. Se aprovada, a lei passa a valer para todos os cidadãos após publicação no Diário Oficial.
+          </div>
+        </details>
+
+        <!-- Item 2 -->
+        <details class="border rounded p-3 bg-white shadow-sm">
+          <summary class="fw-bold aba-style fs-5 text-dark" style="cursor: pointer;">
+            Qual é a diferença entre os Três Poderes?
+          </summary>
+          <div class="mt-3 pt-3 border-top text-secondary">
+            O <strong>Executivo</strong> administra e executa serviços; o <strong>Legislativo</strong> cria e vota as leis; e o <strong>Judiciário</strong> garante o cumprimento das leis e da Constituição.
+          </div>
+        </details>
+
+      </div>
+    </section>
+
+  </main>
 </div>
+
+<!-- Scripts do Bootstrap e inicialização dos Popovers -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+      return new bootstrap.Popover(popoverTriggerEl)
+    })
+  });
+</script>
+
 <%- include("Partials/footer") %>

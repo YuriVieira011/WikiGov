@@ -20,16 +20,22 @@ app.use(express.json());
 
 // ROTAS
 const categoriaRoutes = require("./routes/categoriaRoutes");
-app.use("/categorias", categoriaRoutes);
+app.use("/ouvidoria", categoriaRoutes);
 
-const clienteRoutes = require("./routes/clienteRoutes");
-app.use("/clientes", clienteRoutes);
+// ROTA PARA A PÁGINA DE HISTÓRIA
+app.get("/historia", (req, res) => {
+    res.render("historia");
+});
 
-const fornecedorRoutes = require("./routes/fornecedorRoutes");
-app.use("/fornecedores", fornecedorRoutes);
+// ROTA PARA A PÁGINA DE ARTIGOS
+app.get("/artigos", (req, res) => {
+    res.render("artigos");
+});
 
-const produtoRoutes = require("./routes/produtoRoutes");
-app.use("/produtos", produtoRoutes);
+// ROTA PARA A PÁGINA DE GRÁFICOS
+app.get("/graficos", (req, res) => {
+    res.render("graficos");
+});
 
 
 // ROTA PRINCIPAL - index.ejs de views
