@@ -18,7 +18,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
   <style>
-    /* Estilos Customizados com as Cores Oficiais do Gov.br */
     :root {
       --govbr-azul-escuro: #071D41;
       --govbr-azul: #1351B4;
@@ -26,9 +25,171 @@
       --govbr-azul-hover: #0C326F;
       --govbr-amarelo: #FFCD07;
       --govbr-cinza-claro: #F8F9FA;
+      --bg-body: #f5f7fb;
+      --bg-panel: #ffffff;
+      --bg-panel-alt: #eef3fb;
+      --bg-header: #ffffff;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --border-color: rgba(15, 23, 42, 0.14);
+      --shadow-soft: rgba(15, 23, 42, 0.12);
+      --link-color: #0d6efd;
+      --button-primary: #1351B4;
+      --button-primary-hover: #0C326F;
     }
 
-    /* 1. Barra Superior do Governo */
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    body.theme-dark {
+      --bg-body: #0b1220;
+      --bg-panel: #111b2d;
+      --bg-panel-alt: #16233b;
+      --bg-header: #0e1b2e;
+      --text-primary: #f8fafc;
+      --text-secondary: #dbeafe;
+      --text-muted: #cbd5e1;
+      --border-color: rgba(148, 163, 184, 0.32);
+      --shadow-soft: rgba(2, 6, 23, 0.45);
+      --link-color: #7dd3fc;
+      --button-primary: #4db6ff;
+      --button-primary-hover: #7dd3fc;
+    }
+
+    body.theme-high-contrast {
+      --bg-body: #000000;
+      --bg-panel: #050d1b;
+      --bg-panel-alt: #0f172a;
+      --bg-header: #000000;
+      --text-primary: #ffffff;
+      --text-secondary: #ffffff;
+      --text-muted: #fef3c7;
+      --border-color: #ffea00;
+      --shadow-soft: rgba(255, 255, 0, 0.16);
+      --link-color: #ffff00;
+      --button-primary: #ffff00;
+      --button-primary-hover: #ffe600;
+    }
+
+    body.theme-dark .top-bar-govbr,
+    body.theme-high-contrast .top-bar-govbr {
+      background-color: var(--govbr-azul-escuro);
+    }
+
+    body.theme-dark .main-header-govbr,
+    body.theme-dark .navbar-govbr,
+    body.theme-dark .card,
+    body.theme-dark details,
+    body.theme-dark .ibge-chart-container,
+    body.theme-dark .bg-white,
+    body.theme-dark .bg-light,
+    body.theme-dark .list-group-item,
+    body.theme-dark .table,
+    body.theme-dark .container,
+    body.theme-dark main,
+    body.theme-dark .panel,
+    body.theme-high-contrast .main-header-govbr,
+    body.theme-high-contrast .navbar-govbr,
+    body.theme-high-contrast .card,
+    body.theme-high-contrast details,
+    body.theme-high-contrast .ibge-chart-container,
+    body.theme-high-contrast .bg-white,
+    body.theme-high-contrast .bg-light,
+    body.theme-high-contrast .list-group-item,
+    body.theme-high-contrast .table,
+    body.theme-high-contrast .container,
+    body.theme-high-contrast main,
+    body.theme-high-contrast .panel {
+      background-color: var(--bg-panel) !important;
+      color: var(--text-primary) !important;
+      border-color: var(--border-color) !important;
+      box-shadow: 0 0 0 1px var(--border-color), 0 8px 18px var(--shadow-soft);
+    }
+
+    body.theme-dark .main-header-govbr,
+    body.theme-high-contrast .main-header-govbr {
+      background-color: var(--bg-header) !important;
+    }
+
+    body.theme-dark .brand-govbr,
+    body.theme-high-contrast .brand-govbr {
+      color: #81d4ff !important;
+    }
+
+    body.theme-dark .brand-govbr span,
+    body.theme-high-contrast .brand-govbr span,
+    body.theme-dark .text-muted,
+    body.theme-dark .text-secondary,
+    body.theme-dark .small,
+    body.theme-dark .text-dark,
+    body.theme-dark .text-primary,
+    body.theme-dark .text-light,
+    body.theme-high-contrast .text-muted,
+    body.theme-high-contrast .text-secondary,
+    body.theme-high-contrast .small,
+    body.theme-high-contrast .text-dark,
+    body.theme-high-contrast .text-primary,
+    body.theme-high-contrast .text-light {
+      color: var(--text-primary) !important;
+    }
+
+    body.theme-dark .form-control,
+    body.theme-dark .btn-outline-secondary,
+    body.theme-dark .input-group-text,
+    body.theme-dark .form-select,
+    body.theme-high-contrast .form-control,
+    body.theme-high-contrast .btn-outline-secondary,
+    body.theme-high-contrast .input-group-text,
+    body.theme-high-contrast .form-select {
+      background-color: var(--bg-panel-alt);
+      color: var(--text-primary);
+      border-color: var(--border-color);
+    }
+
+    body.theme-dark .btn-govbr-login,
+    body.theme-dark .btn-primary,
+    body.theme-high-contrast .btn-govbr-login,
+    body.theme-high-contrast .btn-primary {
+      background-color: var(--button-primary) !important;
+      border-color: var(--button-primary) !important;
+      color: #03111d !important;
+      font-weight: 700;
+    }
+
+    body.theme-dark .btn-govbr-login:hover,
+    body.theme-dark .btn-primary:hover,
+    body.theme-high-contrast .btn-govbr-login:hover,
+    body.theme-high-contrast .btn-primary:hover {
+      background-color: var(--button-primary-hover) !important;
+      border-color: var(--button-primary-hover) !important;
+    }
+
+    body.theme-dark .nav-link,
+    body.theme-high-contrast .nav-link {
+      color: #ffffff !important;
+    }
+
+    body.theme-dark a,
+    body.theme-high-contrast a {
+      color: var(--link-color);
+    }
+
+    body.theme-dark .top-bar-govbr a,
+    body.theme-high-contrast .top-bar-govbr a {
+      color: #ffffff;
+    }
+
+    body.theme-dark .theme-toggle-btn,
+    body.theme-high-contrast .theme-toggle-btn {
+      border-color: rgba(255, 255, 255, 0.4);
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
     .top-bar-govbr {
       background-color: var(--govbr-azul-escuro);
       color: #ffffff;
@@ -44,7 +205,6 @@
       text-decoration: underline;
     }
 
-    /* 2. Cabeçalho do Órgão / Marca */
     .main-header-govbr {
       background-color: #ffffff;
       border-bottom: 1px solid #E6E6E6;
@@ -62,7 +222,6 @@
       color: #555555;
     }
 
-    /* Botão Entrar com Gov.br */
     .btn-govbr-login {
       background-color: var(--govbr-azul);
       color: #ffffff;
@@ -76,11 +235,28 @@
       color: #ffffff;
     }
 
-    /* 3. Navbar Principal */
+    .theme-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 999px;
+      color: #ffffff;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.82rem;
+      line-height: 1.2;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
     .navbar-govbr {
       background-color: var(--govbr-azul);
       border-bottom: 4px solid var(--govbr-amarelo);
-      /* Linha amarela característica */
     }
 
     .navbar-govbr .nav-link {
@@ -106,12 +282,61 @@
     }
   </style>
   <script>
-    // Inicializa todos os popovers da página
     document.addEventListener('DOMContentLoaded', function () {
       var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
       var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
         return new bootstrap.Popover(popoverTriggerEl)
       })
+
+      var themeToggle = document.getElementById('themeToggle');
+      var themeLabel = document.getElementById('themeToggleLabel');
+      var storageKey = 'wikigov-theme';
+
+      function applyTheme(theme) {
+        document.body.classList.remove('theme-dark', 'theme-high-contrast');
+
+        if (theme === 'dark') {
+          document.body.classList.add('theme-dark');
+        }
+
+        if (theme === 'contrast') {
+          document.body.classList.add('theme-high-contrast');
+        }
+
+        localStorage.setItem(storageKey, theme);
+
+        if (theme === 'light') {
+          themeLabel.textContent = 'Tema escuro';
+          themeToggle.setAttribute('aria-pressed', 'false');
+        } else if (theme === 'dark') {
+          themeLabel.textContent = 'Alto contraste';
+          themeToggle.setAttribute('aria-pressed', 'true');
+        } else {
+          themeLabel.textContent = 'Tema claro';
+          themeToggle.setAttribute('aria-pressed', 'true');
+        }
+      }
+
+      var savedTheme = localStorage.getItem(storageKey) || 'light';
+      applyTheme(savedTheme);
+
+      if (themeToggle) {
+        themeToggle.addEventListener('click', function () {
+          var currentTheme = document.body.classList.contains('theme-high-contrast')
+            ? 'contrast'
+            : document.body.classList.contains('theme-dark')
+              ? 'dark'
+              : 'light';
+
+          var nextTheme = currentTheme === 'light'
+            ? 'dark'
+            : currentTheme === 'dark'
+              ? 'contrast'
+              : 'light';
+
+          applyTheme(nextTheme);
+        });
+      }
     });
   </script>
 </head>

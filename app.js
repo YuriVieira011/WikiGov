@@ -17,11 +17,6 @@ app.use(express.urlencoded({ extended: true }));
 // Permite receber requisições com JSON
 app.use(express.json());
 
-
-// ROTAS
-const categoriaRoutes = require("./routes/categoriaRoutes");
-app.use("/ouvidoria", categoriaRoutes);
-
 // ROTA PARA A PÁGINA DE HISTÓRIA
 app.get("/historia", (req, res) => {
     res.render("historia");
