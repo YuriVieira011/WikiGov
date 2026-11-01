@@ -1,49 +1,167 @@
 <%- include("partials/header") %>
 <%- include("partials/nav") %>
 
-<link rel="stylesheet" href="/CSS/index.css">
-<div class="container">
+<style>
+  .home-page {
+    max-width: 1180px;
+    padding: 2rem 1rem 3rem;
+  }
+
+  .home-hero {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(2rem, 6vw, 4.5rem);
+    border-radius: 1.25rem;
+    color: #fff;
+    background: linear-gradient(125deg, #071d49, #1351b4 65%, #2670d8);
+  }
+
+  .home-hero::after {
+    position: absolute;
+    right: -5rem;
+    bottom: -11rem;
+    width: 25rem;
+    height: 25rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2.5rem rgba(255, 255, 255, 0.04), 0 0 0 5rem rgba(255, 255, 255, 0.03);
+    content: "";
+    pointer-events: none;
+  }
+
+  .home-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 680px;
+  }
+
+  .home-hero .btn {
+    padding: 0.75rem 1.15rem;
+  }
+
+  body.theme-dark .home-hero .btn,
+  body.theme-high-contrast .home-hero .btn {
+    background-color: var(--button-primary) !important;
+    border-color: var(--button-primary) !important;
+    color: #03111d !important;
+  }
+
+  body.theme-dark .home-hero .btn:hover,
+  body.theme-high-contrast .home-hero .btn:hover {
+    background-color: var(--button-primary-hover) !important;
+    border-color: var(--button-primary-hover) !important;
+    color: #03111d !important;
+  }
+
+  .quick-actions .card {
+    min-height: 190px;
+    border: 1px solid #e5eaf2;
+    border-radius: 1rem;
+    box-shadow: 0 0.4rem 1.2rem rgba(15, 23, 42, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .quick-actions .card:hover,
+  .quick-actions .card:focus-visible {
+    transform: translateY(-4px);
+    border-color: #9bb9e8;
+    box-shadow: 0 0.9rem 1.8rem rgba(19, 81, 180, 0.14);
+  }
+
+  .quick-actions .card:focus-visible {
+    outline: 3px solid #2670d8;
+    outline-offset: 3px;
+  }
+
+  .quick-action-icon {
+    display: inline-grid;
+    width: 3.5rem;
+    height: 3.5rem;
+    place-items: center;
+    border-radius: 1rem;
+    background: #edf4ff;
+    font-size: 1.8rem;
+  }
+
+  .home-faq details {
+    border: 1px solid #e5eaf2 !important;
+    border-radius: 0.85rem;
+    transition: border-color 0.2s ease;
+  }
+
+  .home-faq details[open] {
+    border-color: #b7c9e6 !important;
+  }
+
+  .home-section-title {
+    border-bottom: 1px solid #e5eaf2;
+    padding-bottom: 0.85rem;
+  }
+
+  @media (max-width: 575.98px) {
+    .home-page {
+      padding-top: 1rem;
+    }
+
+    .quick-actions .card {
+      min-height: 0;
+    }
+
+    .home-hero::after {
+      right: -15rem;
+    }
+  }
+</style>
+<div class="container home-page">
   <main class="flex-fill">
 
-    <!-- ATALHOS RÁPIDOS: Jornadas do Cidadão -->
-     <br>
-    <section class="mb-5">
-      <h2 class="h4 fw-bold mb-4 border-bottom pb-2">O que você deseja fazer agora?</h2>
+    <section class="home-hero mb-5">
+      <div class="home-hero-content">
+        <p class="text-uppercase fw-semibold small mb-2 opacity-75">Informação pública em um só lugar</p>
+        <h1 class="display-5 fw-bold mb-3">Encontre serviços e informações do governo</h1>
+        <p class="lead mb-4">Explore temas do seu dia a dia e encontre o caminho para os serviços públicos com mais facilidade.</p>
+        <a href="/artigos" class="btn btn-light text-primary fw-semibold">
+          Explorar serviços <i class="bi bi-arrow-right ms-2"></i>
+        </a>
+      </div>
+    </section>
+
+    <section class="mb-5 quick-actions">
+      <h2 class="h4 fw-bold mb-4 home-section-title">O que você deseja fazer agora?</h2>
       <div class="row g-3">
         <div class="col-md-3 col-sm-6">
-          <div class="card h-100 border-0 shadow-sm text-center p-3 hover-card">
-            <div class="fs-1 text-primary mb-2">📄</div>
-            <h3 class="h6 fw-bold">Documentos Básicos</h3>
-            <p class="small text-muted mb-0">Como emitir CIN, Passaporte, Titulo de Eleitor</p>
-          </div>
+          <a href="/artigos?tipo=Documentos" class="card h-100 text-center p-4 text-decoration-none text-reset">
+            <span class="quick-action-icon mb-3" aria-hidden="true">📄</span>
+            <h3 class="h6 fw-bold mb-2">Documentos básicos</h3>
+            <span class="small text-secondary">Encontre documentos e certidões</span>
+          </a>
         </div>
         <div class="col-md-3 col-sm-6">
-          <div class="card h-100 border-0 shadow-sm text-center p-3 hover-card">
-            <div class="fs-1 text-primary mb-2">🏥</div>
-            <h3 class="h6 fw-bold">Saúde &amp; SUS</h3>
-            <p class="small text-muted mb-0">Atendimento, medicamentos e direitos do paciente</p>
-          </div>
+          <a href="/artigos?categoria=Sa%C3%BAde%20e%20Vigil%C3%A2ncia%20sanit%C3%A1ria" class="card h-100 text-center p-4 text-decoration-none text-reset">
+            <span class="quick-action-icon mb-3" aria-hidden="true">🏥</span>
+            <h3 class="h6 fw-bold mb-2">Saúde &amp; SUS</h3>
+            <span class="small text-secondary">Acesse informações e serviços de saúde</span>
+          </a>
         </div>
         <div class="col-md-3 col-sm-6">
-          <div class="card h-100 border-0 shadow-sm text-center p-3 hover-card">
-            <div class="fs-1 text-primary mb-2">💼</div>
-            <h3 class="h6 fw-bold">Trabalho &amp; Impostos</h3>
-            <p class="small text-muted mb-0">CLT, MEI, Direitos Trabalhistas e Imposto de Renda</p>
-          </div>
+          <a href="/artigos?categoria=Trabalho%2C%20Emprego%20e%20Previd%C3%AAncia" class="card h-100 text-center p-4 text-decoration-none text-reset">
+            <span class="quick-action-icon mb-3" aria-hidden="true">💼</span>
+            <h3 class="h6 fw-bold mb-2">Trabalho &amp; previdência</h3>
+            <span class="small text-secondary">Consulte direitos e serviços do trabalhador</span>
+          </a>
         </div>
         <div class="col-md-3 col-sm-6">
-          <div class="card h-100 border-0 shadow-sm text-center p-3 hover-card">
-            <div class="fs-1 text-primary mb-2">🎓</div>
-            <h3 class="h6 fw-bold">Educação &amp; Cursos</h3>
-            <p class="small text-muted mb-0">ENEM, Prouni, Sisu e vagas em creches</p>
-          </div>
+          <a href="/artigos?q=cursos" class="card h-100 text-center p-4 text-decoration-none text-reset">
+            <span class="quick-action-icon mb-3" aria-hidden="true">🎓</span>
+            <h3 class="h6 fw-bold mb-2">Educação &amp; cursos</h3>
+            <span class="small text-secondary">Pesquise cursos e capacitações disponíveis</span>
+          </a>
         </div>
       </div>
     </section>
 
-    <!-- SEÇÃO DE CONTEÚDO EXPANSÍVEL (FAQ / TÓPICOS) -->
-    <section class="mb-5">
-      <h2 class="h4 fw-bold mb-4 border-bottom pb-2">Dúvidas Frequentes sobre o Governo</h2>
+    <section class="mb-4 home-faq">
+      <h2 class="h4 fw-bold mb-4 home-section-title">Dúvidas frequentes sobre o governo</h2>
       
       <div class="d-flex flex-column gap-3">
         
@@ -79,16 +197,5 @@
 
   </main>
 </div>
-
-<!-- Scripts do Bootstrap e inicialização dos Popovers -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
-    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-      return new bootstrap.Popover(popoverTriggerEl)
-    })
-  });
-</script>
 
 <%- include("partials/footer") %>

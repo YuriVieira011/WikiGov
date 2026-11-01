@@ -107,7 +107,19 @@
       background-color: var(--bg-panel) !important;
       color: var(--text-primary) !important;
       border-color: var(--border-color) !important;
-      box-shadow: 0 0 0 1px var(--border-color), 0 8px 18px var(--shadow-soft);
+      box-shadow: 0 8px 18px var(--shadow-soft);
+    }
+
+    body.theme-dark .border,
+    body.theme-dark [class*="border-"],
+    body.theme-dark details,
+    body.theme-dark .service-item,
+    body.theme-high-contrast .border,
+    body.theme-high-contrast [class*="border-"],
+    body.theme-high-contrast details,
+    body.theme-high-contrast .service-item {
+      border-color: transparent !important;
+      box-shadow: none !important;
     }
 
     body.theme-dark .main-header-govbr,
@@ -183,6 +195,34 @@
       color: #ffffff;
     }
 
+    body.theme-dark .filter-card,
+    body.theme-high-contrast .filter-card,
+    body.theme-dark .filter-card .card-title,
+    body.theme-high-contrast .filter-card .card-title,
+    body.theme-dark .filter-card .filter-intro,
+    body.theme-high-contrast .filter-card .filter-intro,
+    body.theme-dark .filter-card .filter-group > summary,
+    body.theme-high-contrast .filter-card .filter-group > summary,
+    body.theme-dark .filter-card .form-check-label,
+    body.theme-high-contrast .filter-card .form-check-label,
+    body.theme-dark .filter-card .form-check-label i,
+    body.theme-high-contrast .filter-card .form-check-label i {
+      color: #ffffff !important;
+    }
+
+    body.theme-high-contrast .top-bar-govbr .btn-govbr-login,
+    body.theme-high-contrast .top-bar-govbr .btn-govbr-login strong {
+      background-color: #ffea00 !important;
+      border-color: #ffea00 !important;
+      color: #000000 !important;
+    }
+
+    body.theme-high-contrast .top-bar-govbr .btn-govbr-login:hover {
+      background-color: #ffffff !important;
+      border-color: #ffffff !important;
+      color: #000000 !important;
+    }
+
     body.theme-dark .theme-toggle-btn,
     body.theme-high-contrast .theme-toggle-btn {
       border-color: rgba(255, 255, 255, 0.4);
@@ -228,6 +268,11 @@
       font-weight: 600;
       border-radius: 20px;
       padding: 6px 18px;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: fit-content;
     }
 
     .btn-govbr-login:hover {
@@ -247,6 +292,57 @@
       font-size: 0.82rem;
       line-height: 1.2;
       transition: all 0.2s ease;
+    }
+
+    @media (max-width: 767.98px) {
+      .top-bar-govbr .container {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .top-bar-govbr .container > div {
+        min-width: 0;
+      }
+
+      .top-bar-govbr .d-flex {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .btn-govbr-login {
+        width: 100%;
+        max-width: 180px;
+        padding: 0.55rem 0.85rem;
+        font-size: 0.82rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .top-bar-govbr .container {
+        display: block;
+        gap: 0.4rem;
+      }
+
+      .top-bar-govbr .d-flex {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+
+      .btn-govbr-login {
+        max-width: 100%;
+        width: 100%;
+        font-size: 0.76rem;
+      }
+
+      .theme-toggle-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 0.3rem 0.7rem;
+        font-size: 0.75rem;
+      }
     }
 
     .theme-toggle-btn:hover {
@@ -285,56 +381,45 @@
     document.addEventListener('DOMContentLoaded', function () {
       var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
       var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl)
+        return bootstrap.Popover.getOrCreateInstance(popoverTriggerEl)
       })
 
       var themeToggle = document.getElementById('themeToggle');
       var themeLabel = document.getElementById('themeToggleLabel');
+      var contrastToggle = document.getElementById('contrastToggle');
       var storageKey = 'wikigov-theme';
+      var contrastStorageKey = 'wikigov-high-contrast';
 
-      function applyTheme(theme) {
-        document.body.classList.remove('theme-dark', 'theme-high-contrast');
+      function applyTheme(theme, highContrast) {
+        var isDark = theme === 'dark';
 
-        if (theme === 'dark') {
-          document.body.classList.add('theme-dark');
-        }
+        document.body.classList.toggle('theme-dark', isDark);
+        document.body.classList.toggle('theme-high-contrast', highContrast);
+        localStorage.setItem(storageKey, isDark ? 'dark' : 'light');
+        localStorage.setItem(contrastStorageKey, highContrast ? 'true' : 'false');
 
-        if (theme === 'contrast') {
-          document.body.classList.add('theme-high-contrast');
-        }
-
-        localStorage.setItem(storageKey, theme);
-
-        if (theme === 'light') {
-          themeLabel.textContent = 'Tema escuro';
-          themeToggle.setAttribute('aria-pressed', 'false');
-        } else if (theme === 'dark') {
-          themeLabel.textContent = 'Alto contraste';
-          themeToggle.setAttribute('aria-pressed', 'true');
-        } else {
-          themeLabel.textContent = 'Tema claro';
-          themeToggle.setAttribute('aria-pressed', 'true');
-        }
+        themeLabel.textContent = isDark ? 'Tema claro' : 'Tema escuro';
+        themeToggle.setAttribute('aria-pressed', String(isDark));
+        contrastToggle.setAttribute('aria-pressed', String(highContrast));
       }
 
       var savedTheme = localStorage.getItem(storageKey) || 'light';
-      applyTheme(savedTheme);
+      var savedContrast = localStorage.getItem(contrastStorageKey) === 'true' || savedTheme === 'contrast';
+      applyTheme(savedTheme === 'dark' ? 'dark' : 'light', savedContrast);
 
       if (themeToggle) {
         themeToggle.addEventListener('click', function () {
-          var currentTheme = document.body.classList.contains('theme-high-contrast')
-            ? 'contrast'
-            : document.body.classList.contains('theme-dark')
-              ? 'dark'
-              : 'light';
+          var nextTheme = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+          applyTheme(nextTheme, document.body.classList.contains('theme-high-contrast'));
+        });
+      }
 
-          var nextTheme = currentTheme === 'light'
-            ? 'dark'
-            : currentTheme === 'dark'
-              ? 'contrast'
-              : 'light';
-
-          applyTheme(nextTheme);
+      if (contrastToggle) {
+        contrastToggle.addEventListener('click', function () {
+          applyTheme(
+            document.body.classList.contains('theme-dark') ? 'dark' : 'light',
+            !document.body.classList.contains('theme-high-contrast')
+          );
         });
       }
     });

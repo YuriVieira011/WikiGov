@@ -1,6 +1,11 @@
 <%- include("partials/header") %> <%- include("partials/nav") %>
 
     <style>
+      html,
+      body {
+        overflow-x: hidden;
+      }
+
       .btn-primary {
         margin: 5px;
       }
@@ -21,6 +26,20 @@
         display: none !important;
       }
 
+      .service-item .service-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .service-item .service-label .service-item-icon {
+        color: var(--govbr-azul);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       .search-highlight {
         background-color: #fff3a3;
         color: inherit;
@@ -29,60 +48,457 @@
 
       .term-dict {
         cursor: pointer;
+        color: #084298;
+        background-color: #fff3bf;
+        border-radius: 0.15rem;
+        padding: 0 0.08rem;
         text-decoration: underline dotted;
+        text-decoration-color: currentColor;
+      }
+
+      body.theme-dark .term-dict {
+        color: #ffffff !important;
+        background-color: #34445f;
+      }
+
+      body.theme-high-contrast .term-dict {
+        color: #000000 !important;
+        background-color: #ffea00;
+      }
+
+      .filter-card {
+        position: sticky;
+        top: 1rem;
+        width: 100%;
+      }
+
+      .filter-card .card-title {
+        font-size: 1.15rem;
+      }
+
+      .filter-card .filter-intro {
+        color: #5b6573;
+        font-size: 0.9rem;
+      }
+
+      .filter-card .filter-group+.filter-group {
+        margin-top: 0.85rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid #e9ecef;
+      }
+
+      .filter-card .filter-group>summary {
+        cursor: pointer;
+        list-style-position: inside;
+        color: #172b4d;
+      }
+
+      .filter-card .filter-list {
+        max-height: 220px;
+        overflow-y: auto;
+        margin-top: 0.75rem;
+        padding-right: 0.35rem;
+      }
+
+      .filter-card .form-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.65rem;
+        margin-bottom: 0.65rem;
+      }
+
+      .filter-card .form-check-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.4;
+        cursor: pointer;
+      }
+
+      .filter-card .form-check-label i {
+        color: var(--govbr-azul);
+        font-size: 1.05rem;
+      }
+
+      .filter-card .filter-search {
+        margin-top: 0.7rem;
+      }
+
+      #resultado-busca {
+        color: #43536b;
+        font-size: 0.95rem;
+      }
+
+      .artigos-layout {
+        display: grid;
+        grid-template-columns: minmax(230px, 300px) minmax(0, 1fr);
+        align-items: start;
+      }
+
+      .artigos-layout>aside,
+      .artigos-layout>main {
+        width: auto;
+        max-width: none;
+      }
+
+      .artigos-page {
+        max-width: 1540px;
+        padding: 2rem clamp(12px, 2vw, 28px);
+      }
+
+      @media (max-width: 767.98px) {
+        .artigos-layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .filter-card {
+          position: static;
+        }
       }
     </style>
 
-    <div class="container mt-5">
-      <main class="flex-fill" id="lista-artigos">
-        <h1>Bem-vindo à página de Artigos!</h1>
-        <p>
-          Essa página organiza todos os artigos em um sistema simples de categorias.
-        </p>
-        <p id="resultado-busca" aria-live="polite" hidden></p>
-        <div class="mb-3">
-          <%- include("partials/agricultura") %>
-          <%- include("partials/trabalho") %>
-          <%- include("partials/assistencia") %>
-          <%- include("partials/saude") %>
-          <%- include("partials/comunicacao") %>
-          <%- include("partials/defesa") %>
-        </div>
-      </main>
+    <div class="container-fluid artigos-page">
+      <header class="mb-4">
+        <p class="text-uppercase small fw-semibold text-primary mb-2">Catálogo de serviços</p>
+        <h1 class="h2 fw-bold mb-2">Encontre o que você precisa</h1>
+        <p class="text-secondary mb-0">Pesquise pelo serviço ou escolha uma categoria, tipo ou subtipo.</p>
+      </header>
+      <div class="row g-4 artigos-layout">
+        <aside class="col-12">
+          <div class="card shadow-sm border-0 filter-card">
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                <h2 class="card-title fw-bold mb-0">Filtros</h2>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="limpar-filtros">
+                  Limpar
+                </button>
+              </div>
+              <p class="filter-intro mb-3">Sem seleção, todos os serviços são exibidos.</p>
+
+              <details class="filter-group" open>
+                <summary class="fw-semibold">Categorias</summary>
+                <input class="form-control form-control-sm filter-search filter-option-search" type="search" data-filter-search="category" placeholder="Buscar categoria" aria-label="Buscar categoria">
+                <div id="categoria-filtros" class="filter-list"></div>
+              </details>
+
+              <details class="filter-group">
+                <summary class="fw-semibold">Tipos</summary>
+                <input class="form-control form-control-sm filter-search filter-option-search" type="search" data-filter-search="type" placeholder="Buscar tipo" aria-label="Buscar tipo">
+                <div id="tipo-filtros" class="filter-list"></div>
+              </details>
+
+              <details class="filter-group">
+                <summary class="fw-semibold">Subtipos</summary>
+                <input class="form-control form-control-sm filter-search filter-option-search" type="search" data-filter-search="subtype" placeholder="Buscar subtipo" aria-label="Buscar subtipo">
+                <div id="subtipo-filtros" class="filter-list"></div>
+              </details>
+            </div>
+          </div>
+        </aside>
+        <main class="col-12" id="lista-artigos">
+          <p id="resultado-busca" aria-live="polite" hidden></p>
+          <div class="mb-3">
+            <%- include("partials/agricultura") %>
+              <%- include("partials/trabalho") %>
+                <%- include("partials/assistencia") %>
+                  <%- include("partials/saude") %>
+                    <%- include("partials/comunicacao") %>
+                      <%- include("partials/defesa") %>
+          </div>
+        </main>
+      </div>
     </div>
 
-    <!-- Scripts do Bootstrap e inicialização dos Popovers -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Filtros do catálogo -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        var popoverTriggerList = [].slice.call(
-          document.querySelectorAll('[data-bs-toggle="popover"]'),
-        );
-        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-          return new bootstrap.Popover(popoverTriggerEl);
-        });
-
         var queryInput = document.querySelector('input[name="q"]');
         var articleList = document.getElementById("lista-artigos");
         var searchStatus = document.getElementById("resultado-busca");
+        var categoryFilterList = document.getElementById("categoria-filtros");
+        var typeFilterList = document.getElementById("tipo-filtros");
+        var subtypeFilterList = document.getElementById("subtipo-filtros");
+        var glossary = {
+          anuência: "Autorização ou concordância formal dada por uma pessoa ou órgão.",
+          anistia: "Medida legal que perdoa uma infração ou encerra suas consequências.",
+          autenticidade: "Condição de algo verdadeiro e legítimo, que pode ser confirmado.",
+          citopatologia: "Estudo de células para identificar doenças, como alguns tipos de câncer.",
+          credenciamento: "Reconhecimento formal de que uma pessoa ou entidade atende aos requisitos para prestar um serviço.",
+          fitossanitário: "Relacionado à saúde das plantas e à prevenção de pragas e doenças.",
+          habilitação: "Reconhecimento de que uma pessoa ou entidade cumpre os requisitos para exercer uma atividade.",
+          insumo: "Material ou recurso usado para produzir um bem ou prestar um serviço.",
+          licenciamento: "Autorização oficial para exercer uma atividade ou operar um serviço.",
+          outorga: "Ato oficial que concede um direito ou uma autorização.",
+          radiodifusão: "Transmissão de programas de rádio ou televisão para o público.",
+          reexportação: "Envio para outro país de um produto que havia sido importado.",
+          requerimento: "Pedido formal apresentado a um órgão ou autoridade.",
+          subvenção: "Ajuda financeira concedida pelo poder público para apoiar uma atividade."
+        };
 
         if (!queryInput || !articleList || !searchStatus) {
           return;
         }
+
+        var getText = function (element) {
+          return element ? cleanFilterValue(element.textContent.replace(/\s+/g, " ").trim()) : "";
+        };
+
+        var cleanFilterValue = function (value) {
+          return String(value || "")
+            .replace(/\s*\(\s*\d+\s*(?:servi[cç]os?|itens?)?\s*\)\s*$/i, "")
+            .replace(/\s+/g, " ")
+            .trim();
+        };
+
+        var rootDetails = Array.from(articleList.querySelectorAll("details")).filter(function (item) {
+          return !item.parentElement || !item.parentElement.closest("details");
+        });
+
+        rootDetails.forEach(function (item) {
+          var summary = item.querySelector(":scope > summary");
+          item.dataset.categoryName = cleanFilterValue(getText(summary) || "Categoria");
+        });
+
+        var allTypeNames = [];
+        var allSubtypeNames = [];
+        var allCategoryNames = rootDetails.map(function (item) {
+          return item.dataset.categoryName;
+        });
+
+        rootDetails.forEach(function (rootItem) {
+          var typeDetails = Array.from(rootItem.querySelectorAll(":scope > div > details"));
+          typeDetails.forEach(function (typeItem) {
+            var rawTypeName = getText(typeItem.querySelector(":scope > summary"));
+            var typeName = cleanFilterValue(rawTypeName);
+            if (typeName && allTypeNames.indexOf(typeName) === -1) {
+              allTypeNames.push(typeName);
+            }
+            typeItem.dataset.filterCategory = rootItem.dataset.categoryName;
+            typeItem.dataset.filterType = typeName;
+
+            var subtypeDetails = Array.from(typeItem.querySelectorAll(":scope > div > details"));
+            subtypeDetails.forEach(function (subtypeItem) {
+              var rawSubtypeName = getText(subtypeItem.querySelector(":scope > summary"));
+              var subtypeName = cleanFilterValue(rawSubtypeName);
+              if (subtypeName && allSubtypeNames.indexOf(subtypeName) === -1) {
+                allSubtypeNames.push(subtypeName);
+              }
+              subtypeItem.dataset.filterCategory = rootItem.dataset.categoryName;
+              subtypeItem.dataset.filterType = typeName;
+              subtypeItem.dataset.filterSubtype = subtypeName;
+            });
+          });
+        });
+
+        var categoryIcons = {
+          "Agricultura e Pecuária": '<i class="bi bi-leaf"></i>',
+          "Trabalho, Emprego e Previdência": '<i class="bi bi-briefcase"></i>',
+          "Assistência Social": '<i class="bi bi-universal-access-circle"></i>',
+          "Saúde e Vigilância Sanitária": '<i class="bi bi-hospital"></i>',
+          "Saúde e Vigilância sanitária": '<i class="bi bi-hospital"></i>',
+          "Comunicação e Transparência": '<i class="bi bi-broadcast-pin"></i>',
+          "Defesa Civil e Nacional": '<i class="bi bi-shield"></i>'
+        };
+
+        var createFilterCheckboxes = function (container, values, prefix) {
+          if (!container) {
+            return [];
+          }
+
+          var uniqueValues = values.filter(function (value, index, array) {
+            return value && array.indexOf(value) === index;
+          });
+
+          container.innerHTML = "";
+          uniqueValues.forEach(function (value) {
+            var wrapper = document.createElement("div");
+            wrapper.className = "form-check";
+
+            var checkbox = document.createElement("input");
+            var checkboxValue = cleanFilterValue(value);
+            checkbox.type = "checkbox";
+            checkbox.className = "form-check-input filter-checkbox " + prefix;
+            checkbox.checked = false;
+            checkbox.value = checkboxValue;
+            checkbox.id = prefix + "-" + checkboxValue.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+            var label = document.createElement("label");
+            label.className = "form-check-label";
+            label.setAttribute("for", checkbox.id);
+            var icon = document.createElement("span");
+            icon.innerHTML = categoryIcons[checkboxValue] || '<i class="bi bi-file-earmark-text"></i>';
+            label.appendChild(icon);
+            var labelText = document.createElement("span");
+            labelText.textContent = value;
+            label.appendChild(labelText);
+
+            wrapper.appendChild(checkbox);
+            wrapper.appendChild(label);
+            container.appendChild(wrapper);
+          });
+
+          if (container.closest(".filter-group")) {
+            container.closest(".filter-group").hidden = uniqueValues.length === 0;
+          }
+
+          return Array.from(container.querySelectorAll(".filter-checkbox"));
+        };
+
+        var categoryCheckboxes = createFilterCheckboxes(categoryFilterList, allCategoryNames, "category");
+        var typeCheckboxes = createFilterCheckboxes(typeFilterList, allTypeNames, "type");
+        var subtypeCheckboxes = createFilterCheckboxes(subtypeFilterList, allSubtypeNames, "subtype");
+        var optionSearches = Array.from(document.querySelectorAll(".filter-option-search"));
+        var clearFiltersButton = document.getElementById("limpar-filtros");
 
         var details = Array.from(articleList.querySelectorAll("details"));
         var initialOpenStates = new Map(details.map(function (item) {
           return [item, item.open];
         }));
         var serviceItems = Array.from(articleList.querySelectorAll(".service-item"));
+
+        var addServiceIcons = function () {
+          serviceItems.forEach(function (item) {
+            var label = item.querySelector("span");
+            if (!label || label.dataset.iconReady === "true") {
+              return;
+            }
+
+            var context = getItemFilterContext(item);
+            var iconMarkup = categoryIcons[context.category] || '<i class="bi bi-file-earmark-text"></i>';
+            var originalText = label.textContent;
+
+            label.classList.add("service-label");
+            label.innerHTML = "";
+
+            var iconWrapper = document.createElement("span");
+            iconWrapper.className = "service-item-icon";
+            iconWrapper.innerHTML = iconMarkup;
+            label.appendChild(iconWrapper);
+
+            var textWrapper = document.createElement("span");
+            textWrapper.className = "service-text";
+            textWrapper.textContent = originalText.trim();
+            label.appendChild(textWrapper);
+            label.dataset.iconReady = "true";
+          });
+        };
+
         var normalize = function (text) {
-          return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+          return String(text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
         };
 
         var matchesTerms = function (text, terms) {
           var normalizedText = normalize(text);
           return terms.length > 0 && terms.every(function (term) {
             return normalizedText.includes(term);
+          });
+        };
+
+        var getSummaryText = function (element) {
+          if (!element) {
+            return "";
+          }
+          var summary = element.querySelector(":scope > summary");
+          return getText(summary) || getText(element);
+        };
+
+        var getItemFilterContext = function (item) {
+          var context = { category: null, type: null, subtype: null };
+          var current = item.closest("details");
+
+          while (current && current !== articleList) {
+            if (current.dataset.filterCategory) {
+              context.category = current.dataset.filterCategory;
+            }
+            if (current.dataset.filterType) {
+              context.type = current.dataset.filterType;
+            }
+            if (current.dataset.filterSubtype) {
+              context.subtype = current.dataset.filterSubtype;
+            }
+            current = current.parentElement && current.parentElement.closest("details");
+          }
+
+          return context;
+        };
+
+        var clearSearchHighlights = function (element) {
+          Array.from(element.querySelectorAll("mark.search-highlight")).forEach(function (highlight) {
+            highlight.replaceWith(document.createTextNode(highlight.textContent));
+          });
+        };
+
+        var applySearchHighlightsToTextNodes = function (element, terms) {
+          if (!terms.length) {
+            return;
+          }
+
+          var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+          var textNodes = [];
+          while (walker.nextNode()) {
+            textNodes.push(walker.currentNode);
+          }
+
+          textNodes.forEach(function (textNode) {
+            var text = textNode.textContent;
+            var normalizedText = "";
+            var characterRanges = [];
+            var offset = 0;
+
+            while (offset < text.length) {
+              var character = String.fromCodePoint(text.codePointAt(offset));
+              var start = offset;
+              offset += character.length;
+              var normalizedCharacter = normalize(character);
+              normalizedText += normalizedCharacter;
+              for (var index = 0; index < normalizedCharacter.length; index += 1) {
+                characterRanges.push({ start: start, end: offset });
+              }
+            }
+
+            var ranges = [];
+            terms.forEach(function (term) {
+              var position = normalizedText.indexOf(term);
+              while (position !== -1) {
+                var endPosition = position + term.length - 1;
+                ranges.push({
+                  start: characterRanges[position].start,
+                  end: characterRanges[endPosition].end
+                });
+                position = normalizedText.indexOf(term, position + term.length);
+              }
+            });
+
+            ranges.sort(function (first, second) {
+              return first.start - second.start || second.end - first.end;
+            });
+
+            var mergedRanges = [];
+            ranges.forEach(function (range) {
+              var previous = mergedRanges[mergedRanges.length - 1];
+              if (previous && range.start <= previous.end) {
+                previous.end = Math.max(previous.end, range.end);
+              } else {
+                mergedRanges.push({ start: range.start, end: range.end });
+              }
+            });
+
+            if (!mergedRanges.length) {
+              return;
+            }
+
+            var fragment = document.createDocumentFragment();
+            var cursor = 0;
+            mergedRanges.forEach(function (range) {
+              fragment.appendChild(document.createTextNode(text.slice(cursor, range.start)));
+              var highlight = document.createElement("mark");
+              highlight.className = "search-highlight";
+              highlight.textContent = text.slice(range.start, range.end);
+              fragment.appendChild(highlight);
+              cursor = range.end;
+            });
+            fragment.appendChild(document.createTextNode(text.slice(cursor)));
+            textNode.replaceWith(fragment);
           });
         };
 
@@ -93,8 +509,9 @@
             element.dataset.originalText = text;
           }
 
-          if (!terms.length) {
-            element.textContent = text;
+          if (element.classList.contains("service-text") && element.dataset.glossaryReady === "true") {
+            clearSearchHighlights(element);
+            applySearchHighlightsToTextNodes(element, terms);
             return;
           }
 
@@ -114,12 +531,12 @@
             }
           }
 
-          var ranges = [];
+          var searchRanges = [];
           terms.forEach(function (term) {
             var position = normalizedText.indexOf(term);
             while (position !== -1) {
               var endPosition = position + term.length - 1;
-              ranges.push({
+              searchRanges.push({
                 start: characterRanges[position].start,
                 end: characterRanges[endPosition].end
               });
@@ -127,48 +544,160 @@
             }
           });
 
-          ranges.sort(function (first, second) {
+          searchRanges.sort(function (first, second) {
             return first.start - second.start || second.end - first.end;
           });
 
-          var mergedRanges = [];
-          ranges.forEach(function (range) {
-            var previous = mergedRanges[mergedRanges.length - 1];
+          var mergedSearchRanges = [];
+          searchRanges.forEach(function (range) {
+            var previous = mergedSearchRanges[mergedSearchRanges.length - 1];
             if (previous && range.start <= previous.end) {
               previous.end = Math.max(previous.end, range.end);
             } else {
-              mergedRanges.push({ start: range.start, end: range.end });
+              mergedSearchRanges.push({ start: range.start, end: range.end });
             }
           });
 
+          var glossaryRanges = [];
+          if (element.classList.contains("service-text")) {
+            Object.keys(glossary).forEach(function (term) {
+              var normalizedTerm = normalize(term);
+              var position = normalizedText.indexOf(normalizedTerm);
+              while (position !== -1) {
+                var endPosition = position + normalizedTerm.length;
+                var before = position > 0 ? normalizedText[position - 1] : "";
+                var after = endPosition < normalizedText.length ? normalizedText[endPosition] : "";
+                if (!/[a-z0-9]/.test(before) && !/[a-z0-9]/.test(after)) {
+                  glossaryRanges.push({
+                    start: characterRanges[position].start,
+                    end: characterRanges[endPosition - 1].end,
+                    term: term
+                  });
+                }
+                position = normalizedText.indexOf(normalizedTerm, position + normalizedTerm.length);
+              }
+            });
+          }
+
+          glossaryRanges.sort(function (first, second) {
+            return first.start - second.start || second.end - first.end;
+          });
+
+          var nonOverlappingGlossaryRanges = [];
+          glossaryRanges.forEach(function (range) {
+            var previous = nonOverlappingGlossaryRanges[nonOverlappingGlossaryRanges.length - 1];
+            if (!previous || range.start >= previous.end) {
+              nonOverlappingGlossaryRanges.push(range);
+            }
+          });
+
+          var appendTextWithSearchHighlights = function (parent, start, end) {
+            var cursor = start;
+            mergedSearchRanges.forEach(function (range) {
+              var rangeStart = Math.max(range.start, start);
+              var rangeEnd = Math.min(range.end, end);
+              if (rangeStart >= rangeEnd) {
+                return;
+              }
+              if (rangeStart > cursor) {
+                parent.appendChild(document.createTextNode(text.slice(cursor, rangeStart)));
+              }
+              var highlight = document.createElement("mark");
+              highlight.className = "search-highlight";
+              highlight.textContent = text.slice(rangeStart, rangeEnd);
+              parent.appendChild(highlight);
+              cursor = rangeEnd;
+            });
+            if (cursor < end) {
+              parent.appendChild(document.createTextNode(text.slice(cursor, end)));
+            }
+          };
+
           element.replaceChildren();
           var textOffset = 0;
-          mergedRanges.forEach(function (range) {
-            element.appendChild(document.createTextNode(text.slice(textOffset, range.start)));
-            var highlight = document.createElement("mark");
-            highlight.className = "search-highlight";
-            highlight.textContent = text.slice(range.start, range.end);
-            element.appendChild(highlight);
+          nonOverlappingGlossaryRanges.forEach(function (range) {
+            appendTextWithSearchHighlights(element, textOffset, range.start);
+            var trigger = document.createElement("span");
+            trigger.className = "term-dict";
+            trigger.tabIndex = 0;
+            trigger.setAttribute("role", "button");
+            trigger.setAttribute("aria-label", text.slice(range.start, range.end) + ": " + glossary[range.term]);
+            trigger.setAttribute("data-bs-toggle", "popover");
+            trigger.setAttribute("data-bs-trigger", "hover focus");
+            trigger.setAttribute("data-bs-title", range.term);
+            trigger.setAttribute("data-bs-content", glossary[range.term]);
+            trigger.setAttribute("data-glossary-popover", "");
+            appendTextWithSearchHighlights(trigger, range.start, range.end);
+            element.appendChild(trigger);
+            if (window.bootstrap && bootstrap.Popover) {
+              bootstrap.Popover.getOrCreateInstance(trigger);
+            }
             textOffset = range.end;
           });
-          element.appendChild(document.createTextNode(text.slice(textOffset)));
+          appendTextWithSearchHighlights(element, textOffset, text.length);
+          if (element.classList.contains("service-text")) {
+            element.dataset.glossaryReady = "true";
+          }
+        };
+
+        var applyUrlFilters = function () {
+          var params = new URLSearchParams(window.location.search);
+          var selectedCategory = cleanFilterValue(params.get("categoria"));
+          var selectedType = cleanFilterValue(params.get("tipo"));
+          var selectedSubtype = cleanFilterValue(params.get("subtipo"));
+
+          if (selectedCategory) {
+            categoryCheckboxes.forEach(function (checkbox) {
+              checkbox.checked = normalize(checkbox.value) === normalize(selectedCategory);
+            });
+          }
+
+          if (selectedType) {
+            typeCheckboxes.forEach(function (checkbox) {
+              checkbox.checked = normalize(checkbox.value) === normalize(selectedType);
+            });
+          }
+
+          if (selectedSubtype) {
+            subtypeCheckboxes.forEach(function (checkbox) {
+              checkbox.checked = normalize(checkbox.value) === normalize(selectedSubtype);
+            });
+          }
         };
 
         var filterArticles = function () {
           var terms = normalize(queryInput.value.trim()).split(/\s+/).filter(Boolean);
           var matchingArticles = 0;
 
-          details.forEach(function (item) {
-            var summary = item.querySelector(":scope > summary");
-            if (summary) {
-              highlightTerms(summary, terms);
-            }
+          var selectedCategories = categoryCheckboxes.filter(function (checkbox) {
+            return checkbox.checked;
+          }).map(function (checkbox) {
+            return checkbox.value;
           });
 
+          var selectedTypes = typeCheckboxes.filter(function (checkbox) {
+            return checkbox.checked;
+          }).map(function (checkbox) {
+            return checkbox.value;
+          });
+
+          var selectedSubtypes = subtypeCheckboxes.filter(function (checkbox) {
+            return checkbox.checked;
+          }).map(function (checkbox) {
+            return checkbox.value;
+          });
+
+          var hasAnyFilter = selectedCategories.length > 0 || selectedTypes.length > 0 || selectedSubtypes.length > 0;
+
           serviceItems.forEach(function (item) {
-            var title = item.querySelector("span");
-            var matches = !terms.length ||
-              matchesTerms(title ? title.textContent : item.textContent, terms);
+            var title = item.querySelector(".service-text") || item.querySelector("span");
+            var text = title ? title.textContent : item.textContent;
+            var context = getItemFilterContext(item);
+
+            var categoryMatch = !selectedCategories.length || selectedCategories.indexOf(context.category) !== -1;
+            var typeMatch = !selectedTypes.length || selectedTypes.indexOf(context.type) !== -1;
+            var subtypeMatch = !selectedSubtypes.length || selectedSubtypes.indexOf(context.subtype) !== -1;
+            var matches = categoryMatch && typeMatch && subtypeMatch && (!terms.length || matchesTerms(text, terms));
 
             item.hidden = !matches;
             if (terms.length && title) {
@@ -176,32 +705,234 @@
             } else if (title) {
               highlightTerms(title, []);
             }
-            if (terms.length && matchesTerms(title ? title.textContent : item.textContent, terms)) {
+
+            if (matches && terms.length) {
               matchingArticles += 1;
             }
           });
 
-          details.slice().reverse().forEach(function (item) {
-            var hasVisibleItems = Array.from(item.querySelectorAll(".service-item")).some(function (article) {
-              return !article.hidden;
+          var typeNamesByCategory = {};
+          var subtypeNamesByCategory = {};
+          var categoryNamesByType = {};
+          var categoryNamesBySubtype = {};
+
+          rootDetails.forEach(function (category) {
+            var categoryName = category.dataset.categoryName;
+            typeNamesByCategory[categoryName] = [];
+            subtypeNamesByCategory[categoryName] = [];
+
+            Array.from(category.querySelectorAll(":scope > div > details")).forEach(function (typeDetail) {
+              var typeName = getText(typeDetail.querySelector(":scope > summary"));
+              if (!typeName) {
+                return;
+              }
+
+              typeNamesByCategory[categoryName].push(typeName);
+              categoryNamesByType[typeName] = categoryNamesByType[typeName] || [];
+              if (categoryNamesByType[typeName].indexOf(categoryName) === -1) {
+                categoryNamesByType[typeName].push(categoryName);
+              }
+
+              Array.from(typeDetail.querySelectorAll(":scope > div > details")).forEach(function (subtypeDetail) {
+                var subtypeName = getText(subtypeDetail.querySelector(":scope > summary"));
+                if (!subtypeName) {
+                  return;
+                }
+
+                subtypeNamesByCategory[categoryName].push(subtypeName);
+                categoryNamesBySubtype[subtypeName] = categoryNamesBySubtype[subtypeName] || [];
+                if (categoryNamesBySubtype[subtypeName].indexOf(categoryName) === -1) {
+                  categoryNamesBySubtype[subtypeName].push(categoryName);
+                }
+              });
+            });
+          });
+
+          var visibleCategoryNames = rootDetails.map(function (item) {
+            return item.dataset.categoryName;
+          }).filter(function (categoryName) {
+            var categoryHasSelectedType = !selectedTypes.length || (typeNamesByCategory[categoryName] || []).some(function (typeName) {
+              return selectedTypes.indexOf(typeName) !== -1;
+            });
+            var categoryHasSelectedSubtype = !selectedSubtypes.length || (subtypeNamesByCategory[categoryName] || []).some(function (subtypeName) {
+              return selectedSubtypes.indexOf(subtypeName) !== -1;
+            });
+            var categoryMatchesSelection = (!selectedCategories.length || selectedCategories.indexOf(categoryName) !== -1) && categoryHasSelectedType && categoryHasSelectedSubtype;
+            if (terms.length) {
+              return !rootDetails.find(function (item) {
+                return item.dataset.categoryName === categoryName && item.hidden;
+              });
+            }
+            return categoryMatchesSelection;
+          });
+
+          var visibleTypeNames = allTypeNames.filter(function (typeName) {
+            var typeCategories = categoryNamesByType[typeName] || [];
+            var typeHasSelectedCategory = !selectedCategories.length || typeCategories.some(function (categoryName) {
+              return selectedCategories.indexOf(categoryName) !== -1;
+            });
+            var typeMatchesCurrentSelection = !selectedTypes.length || selectedTypes.indexOf(typeName) !== -1;
+            var typeMatchesSubtype = !selectedSubtypes.length || (typeNamesByCategory ? true : true);
+            if (selectedSubtypes.length) {
+              typeMatchesSubtype = Array.from(rootDetails).some(function (category) {
+                var categoryName = category.dataset.categoryName;
+                if (!categoryNamesByType[typeName] || categoryNamesByType[typeName].indexOf(categoryName) === -1) {
+                  return false;
+                }
+                return (subtypeNamesByCategory[categoryName] || []).some(function (subtypeName) {
+                  return selectedSubtypes.indexOf(subtypeName) !== -1 && Array.from(category.querySelectorAll(":scope > div > details")).some(function (typeDetail) {
+                    return getText(typeDetail.querySelector(":scope > summary")) === typeName;
+                  });
+                });
+              });
+            }
+            if (terms.length) {
+              return rootDetails.some(function (category) {
+                if (category.hidden) {
+                  return false;
+                }
+                return Array.from(category.querySelectorAll(":scope > div > details")).some(function (typeDetail) {
+                  return getText(typeDetail.querySelector(":scope > summary")) === typeName && Array.from(typeDetail.querySelectorAll(".service-item")).some(function (service) {
+                    return !service.hidden;
+                  });
+                });
+              });
+            }
+            return typeHasSelectedCategory && typeMatchesCurrentSelection && typeMatchesSubtype;
+          });
+
+          var visibleSubtypeNames = allSubtypeNames.filter(function (subtypeName) {
+            var subtypeCategories = categoryNamesBySubtype[subtypeName] || [];
+            var subtypeHasSelectedCategory = !selectedCategories.length || subtypeCategories.some(function (categoryName) {
+              return selectedCategories.indexOf(categoryName) !== -1;
+            });
+            var subtypeMatchesCurrentSelection = !selectedSubtypes.length || selectedSubtypes.indexOf(subtypeName) !== -1;
+            var subtypeMatchesType = !selectedTypes.length || rootDetails.some(function (category) {
+              return (categoryNamesBySubtype[subtypeName] || []).indexOf(category.dataset.categoryName) !== -1 && Array.from(category.querySelectorAll(":scope > div > details")).some(function (typeDetail) {
+                var typeName = getText(typeDetail.querySelector(":scope > summary"));
+                return selectedTypes.indexOf(typeName) !== -1 && Array.from(typeDetail.querySelectorAll(":scope > div > details")).some(function (subtypeDetail) {
+                  return getText(subtypeDetail.querySelector(":scope > summary")) === subtypeName;
+                });
+              });
+            });
+            if (terms.length) {
+              return rootDetails.some(function (category) {
+                if (category.hidden) {
+                  return false;
+                }
+                return Array.from(category.querySelectorAll(":scope > div details details")).some(function (subtypeDetail) {
+                  return getText(subtypeDetail.querySelector(":scope > summary")) === subtypeName && Array.from(subtypeDetail.querySelectorAll(".service-item")).some(function (service) {
+                    return !service.hidden;
+                  });
+                });
+              });
+            }
+            return subtypeHasSelectedCategory && subtypeMatchesCurrentSelection && subtypeMatchesType;
+          });
+
+          rootDetails.forEach(function (item) {
+            var visibleServices = Array.from(item.querySelectorAll(".service-item")).some(function (service) {
+              return !service.hidden;
             });
 
-            item.hidden = terms.length > 0 && !hasVisibleItems;
+            var categoryVisible = !selectedCategories.length || selectedCategories.indexOf(item.dataset.categoryName) !== -1;
+            var childTypeNames = Array.from(item.querySelectorAll(":scope > div > details")).map(function (detail) {
+              return getText(detail.querySelector(":scope > summary"));
+            });
+            var childSubtypeNames = Array.from(item.querySelectorAll(":scope > div details details")).map(function (detail) {
+              return getText(detail.querySelector(":scope > summary"));
+            });
+
+            var typeVisible = !selectedTypes.length || childTypeNames.some(function (typeName) {
+              return selectedTypes.indexOf(typeName) !== -1;
+            });
+            var subtypeVisible = !selectedSubtypes.length || childSubtypeNames.some(function (subtypeName) {
+              return selectedSubtypes.indexOf(subtypeName) !== -1;
+            });
+
+            item.hidden = hasAnyFilter ? !(categoryVisible && typeVisible && subtypeVisible) : false;
+            if (terms.length && !visibleServices) {
+              item.hidden = true;
+            }
             item.open = terms.length > 0 ? !item.hidden : initialOpenStates.get(item);
           });
 
-          searchStatus.hidden = !terms.length;
+          var hideIrrelevantOptions = function (checkboxes, visibleValues) {
+            checkboxes.forEach(function (checkbox) {
+              var wrapper = checkbox.closest(".form-check");
+              if (!wrapper) {
+                return;
+              }
+              var optionSearch = optionSearches.find(function (input) {
+                return input.dataset.filterSearch === checkbox.classList[2];
+              });
+              var searchTerm = optionSearch ? normalize(optionSearch.value.trim()) : "";
+              var isIrrelevant = visibleValues.length > 0 && visibleValues.indexOf(checkbox.value) === -1;
+              var doesNotMatchSearch = searchTerm && !normalize(checkbox.value).includes(searchTerm);
+              wrapper.hidden = isIrrelevant || doesNotMatchSearch;
+            });
+          };
+
+          hideIrrelevantOptions(categoryCheckboxes, visibleCategoryNames);
+          hideIrrelevantOptions(typeCheckboxes, visibleTypeNames);
+          hideIrrelevantOptions(subtypeCheckboxes, visibleSubtypeNames);
+
+          searchStatus.hidden = false;
           if (terms.length) {
-            var categoryCount = details.filter(function (item) {
-              return !item.hidden && !item.parentElement.closest("details");
+            var categoryCount = rootDetails.filter(function (item) {
+              return !item.hidden;
             }).length;
-            searchStatus.textContent = categoryCount + (categoryCount === 1 ? " categoria e " : " categorias e ") +
-              matchingArticles + (matchingArticles === 1 ? " artigo encontrado." : " artigos encontrados.");
+            searchStatus.textContent = matchingArticles + (matchingArticles === 1 ? " serviço encontrado em " : " serviços encontrados em ") +
+              categoryCount + (categoryCount === 1 ? " categoria." : " categorias.");
+          } else {
+            var visibleCount = serviceItems.filter(function (item) {
+              return !item.hidden;
+            }).length;
+            searchStatus.textContent = visibleCount + (visibleCount === 1 ? " serviço disponível." : " serviços disponíveis.");
           }
+
+          details.forEach(function (item) {
+            if (item.dataset.filterCategory) {
+              item.hidden = !Array.from(item.querySelectorAll(".service-item")).some(function (service) {
+                return !service.hidden;
+              });
+            }
+            var summary = item.querySelector(":scope > summary");
+            if (summary && !item.dataset.filterCategory) {
+              highlightTerms(summary, terms);
+            }
+            item.open = terms.length > 0 ? !item.hidden : initialOpenStates.get(item);
+          });
         };
 
+        [categoryCheckboxes, typeCheckboxes, subtypeCheckboxes].forEach(function (checkBoxGroup) {
+          checkBoxGroup.forEach(function (checkbox) {
+            checkbox.addEventListener("change", filterArticles);
+          });
+        });
+
+        addServiceIcons();
+        applyUrlFilters();
         filterArticles();
         queryInput.addEventListener("input", filterArticles);
+        optionSearches.forEach(function (input) {
+          input.addEventListener("input", filterArticles);
+        });
+        if (clearFiltersButton) {
+          clearFiltersButton.addEventListener("click", function () {
+            queryInput.value = "";
+            optionSearches.forEach(function (input) {
+              input.value = "";
+            });
+            [categoryCheckboxes, typeCheckboxes, subtypeCheckboxes].forEach(function (checkboxes) {
+              checkboxes.forEach(function (checkbox) {
+                checkbox.checked = false;
+              });
+            });
+            window.history.replaceState(null, "", window.location.pathname);
+            filterArticles();
+          });
+        }
       });
     </script>
 

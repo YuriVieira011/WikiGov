@@ -15,6 +15,10 @@
             <i class="bi bi-circle-half"></i>
             <span id="themeToggleLabel">Tema escuro</span>
           </button>
+          <button id="contrastToggle" class="theme-toggle-btn" type="button" aria-label="Alternar alto contraste" aria-pressed="false">
+            <i class="bi bi-circle-half"></i>
+            <span>Alto contraste</span>
+          </button>
           <!-- Botão de Acesso / Gov.br -->
           <div class="col-12 col-md-3 text-md-end">
             <a href="https://www.gov.br/pt-br" class="btn btn-govbr-login d-inline-flex align-items-center gap-2">
@@ -41,25 +45,16 @@
             </a>
           </div>
 
-          <!-- Barra de Busca com Filtro de Escopo -->
+          <!-- Barra de Busca -->
 <div class="col-12 col-md-7">
   <form action="/artigos" method="GET" class="row g-2">
-    <div class="col-md-8">
+    <div class="col-12">
       <div class="input-group">
-        <input type="search" class="form-control" name="q" placeholder="O que você procura?" aria-label="Buscar artigos" value="<%= typeof busca !== 'undefined' ? busca : '' %>">
-        <button class="btn btn-outline-secondary" type="submit" aria-label="Buscar artigos">
+        <input type="search" class="form-control" name="q" placeholder="O que você procura?" aria-label="Buscar artigos e serviços" value="<%= typeof busca !== 'undefined' ? busca : '' %>">
+        <button class="btn btn-outline-secondary" type="submit" aria-label="Buscar artigos e serviços">
           <i class="bi bi-search"></i>
         </button>
       </div>
-    </div>
-    <div class="col-md-4">
-      <select class="form-select" name="escopo" aria-label="Filtrar por escopo">
-        <option value="all">Filtrar por: Todos</option>
-        <option value="category">Categoria</option>
-        <option value="type">Tipo</option>
-        <option value="subtype">Subtipo</option>
-        <option value="service">Artigo / Serviço</option>
-      </select>
     </div>
   </form>
 </div>

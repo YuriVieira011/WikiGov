@@ -6,13 +6,17 @@
     document.querySelectorAll('[data-bs-toggle="popover"]')
   );
   var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-    return new bootstrap.Popover(popoverTriggerEl);
+    return bootstrap.Popover.getOrCreateInstance(popoverTriggerEl);
   });
 
   var queryInput = document.querySelector('input[name="q"]');
   var scopeSelect = document.querySelector('select[name="escopo"]');
   var articleList = document.getElementById("lista-artigos");
   var searchStatus = document.getElementById("resultado-busca");
+
+  if (document.getElementById("categoria-filtros")) {
+    return;
+  }
 
   if (!queryInput || !articleList || !searchStatus) {
     return;
