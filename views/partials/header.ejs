@@ -45,6 +45,48 @@
       transition: background-color 0.2s ease, color 0.2s ease;
     }
 
+    .page-loading {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: grid;
+      place-content: center;
+      justify-items: center;
+      gap: 0.75rem;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    .page-loading.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .page-loading-spinner {
+      width: 2.5rem;
+      height: 2.5rem;
+      border: 0.25rem solid var(--border-color);
+      border-top-color: var(--govbr-azul);
+      border-radius: 50%;
+      animation: page-loading-spin 0.8s linear infinite;
+    }
+
+    @keyframes page-loading-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .page-loading-spinner {
+        animation: none;
+      }
+    }
+
     body.theme-dark {
       --bg-body: #0b1220;
       --bg-panel: #111b2d;
@@ -118,7 +160,7 @@
     body.theme-high-contrast [class*="border-"],
     body.theme-high-contrast details,
     body.theme-high-contrast .service-item {
-      border-color: transparent !important;
+      border-color: white;
       box-shadow: none !important;
     }
 
@@ -310,9 +352,19 @@
         flex-wrap: wrap;
       }
 
+      .top-bar-govbr .top-bar-controls {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.5rem !important;
+      }
+
+      .top-bar-govbr .top-bar-controls > * {
+        align-self: stretch !important;
+      }
+
       .btn-govbr-login {
         width: 100%;
-        max-width: 180px;
+        max-width: none;
         padding: 0.55rem 0.85rem;
         font-size: 0.82rem;
       }
@@ -331,17 +383,28 @@
         width: 100%;
       }
 
+      .top-bar-govbr .top-bar-controls {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.25rem !important;
+      }
+
       .btn-govbr-login {
-        max-width: 100%;
         width: 100%;
-        font-size: 0.76rem;
+        min-width: 0;
+        justify-content: center;
+        gap: 0.15rem !important;
+        padding: 0.3rem 0.1rem;
+        font-size: 0.62rem;
+        white-space: normal;
       }
 
       .theme-toggle-btn {
         width: 100%;
         justify-content: center;
-        padding: 0.3rem 0.7rem;
-        font-size: 0.75rem;
+        gap: 0.2rem;
+        padding: 0.3rem 0.2rem;
+        font-size: 0.68rem;
       }
     }
 
@@ -427,3 +490,20 @@
 </head>
 
 <body>
+  <div id="page-loading" class="page-loading" role="status" aria-live="polite">
+    <span class="page-loading-spinner" aria-hidden="true"></span>
+    <span>Carregando página...</span>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var loadingScreen = document.getElementById('page-loading');
+      if (!loadingScreen) {
+        return;
+      }
+
+      loadingScreen.classList.add('is-hidden');
+      window.setTimeout(function () {
+        loadingScreen.remove();
+      }, 200);
+    });
+  </script>

@@ -42,8 +42,18 @@
 
       .search-highlight {
         background-color: #fff3a3;
-        color: inherit;
+        color: #172033;
         padding: 0;
+      }
+
+      body.theme-dark .search-highlight {
+        background-color: #1351b4;
+        color: #ffffff;
+      }
+
+      body.theme-high-contrast .search-highlight {
+        background-color: #ffff00;
+        color: #000000;
       }
 
       .term-dict {
@@ -211,6 +221,9 @@
                                 <%- include("partials/ciencia") %>
                                   <%- include("partials/educacao") %>
                                     <%- include("partials/empresa") %>
+                                      <%- include("partials/justica") %>
+                                        <%- include("partials/meioambiente") %>
+                                          <%- include("partials/financas") %>
           </div>
         </main>
       </div>
@@ -305,13 +318,16 @@
           "Saúde e Vigilância sanitária": '<i class="bi bi-hospital"></i>',
           "Comunicação e Transparência": '<i class="bi bi-broadcast-pin"></i>',
           "Defesa Civil e Nacional": '<i class="bi bi-shield"></i>',
-          "Turismo": '<i class="bi bi-map"></i>',
+          "Turismo": '<i class="bi bi-passport"></i>',
           "Trânsito": '<i class="bi bi-car-front"></i>',
           "Cultura": '<i class="bi bi-palette"></i>',
           "Energia": '<i class="bi bi-battery-charging"></i>',
           "Ciência": '<i class="bi bi-flask"></i>',
-          "Educação": '<i class="bi bi-book"></i>',
-          "Empresa": '<i class="bi bi-building-check"></i>'
+          "Educação": '<i class="bi bi-mortarboard-fill"></i>',
+          "Empresa": '<i class="bi bi-building-check"></i>',
+          "Justiça": '<i class="bi bi-bank"></i>',
+          "Meio Ambiente": '<i class="bi bi-tree"></i>',
+          "Finanças": '<i class="bi bi-cash-coin"></i>'
         };
 
         var createFilterCheckboxes = function (container, values, prefix) {
@@ -704,20 +720,19 @@
           var hasAnyFilter = selectedCategories.length > 0 || selectedTypes.length > 0 || selectedSubtypes.length > 0;
 
           serviceItems.forEach(function (item) {
-            var title = item.querySelector(".service-text") || item.querySelector("span");
-            var text = title ? title.textContent : item.textContent;
+            var title = item.querySelector(".service-text") || item.querySelector(":scope > span");
+            var text = title ? title.textContent.trim() : "";
             var context = getItemFilterContext(item);
 
             var categoryMatch = !selectedCategories.length || selectedCategories.indexOf(context.category) !== -1;
             var typeMatch = !selectedTypes.length || selectedTypes.indexOf(context.type) !== -1;
             var subtypeMatch = !selectedSubtypes.length || selectedSubtypes.indexOf(context.subtype) !== -1;
-            var matches = categoryMatch && typeMatch && subtypeMatch && (!terms.length || matchesTerms(text, terms));
+            var matches = categoryMatch && typeMatch && subtypeMatch &&
+              (!terms.length || (text && matchesTerms(text, terms)));
 
             item.hidden = !matches;
-            if (terms.length && title) {
-              highlightTerms(title, terms);
-            } else if (title) {
-              highlightTerms(title, []);
+            if (title) {
+              highlightTerms(title, matches && terms.length ? terms : []);
             }
 
             if (matches && terms.length) {
@@ -910,10 +925,6 @@
               item.hidden = !Array.from(item.querySelectorAll(".service-item")).some(function (service) {
                 return !service.hidden;
               });
-            }
-            var summary = item.querySelector(":scope > summary");
-            if (summary && !item.dataset.filterCategory) {
-              highlightTerms(summary, terms);
             }
             item.open = terms.length > 0 ? !item.hidden : initialOpenStates.get(item);
           });

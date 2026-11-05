@@ -2,238 +2,499 @@
 </script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-  var popoverTriggerList = [].slice.call(
-    document.querySelectorAll('[data-bs-toggle="popover"]')
-  );
-  var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-    return bootstrap.Popover.getOrCreateInstance(popoverTriggerEl);
-  });
-
-  var queryInput = document.querySelector('input[name="q"]');
-  var scopeSelect = document.querySelector('select[name="escopo"]');
-  var articleList = document.getElementById("lista-artigos");
-  var searchStatus = document.getElementById("resultado-busca");
-
-  if (document.getElementById("categoria-filtros")) {
-    return;
-  }
-
-  if (!queryInput || !articleList || !searchStatus) {
-    return;
-  }
-
-  var details = Array.from(articleList.querySelectorAll("details"));
-  var initialOpenStates = new Map(details.map(function (item) {
-    return [item, item.open];
-  }));
-  
-  var serviceItems = Array.from(articleList.querySelectorAll(".service-item"));
-
-  var normalize = function (text) {
-    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
-  };
-
-  var matchesTerms = function (text, terms) {
-    var normalizedText = normalize(text);
-    return terms.length > 0 && terms.every(function (term) {
-      return normalizedText.includes(term);
+    var popoverTriggerList = [].slice.call(
+      document.querySelectorAll('[data-bs-toggle="popover"]')
+    );
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+      return bootstrap.Popover.getOrCreateInstance(popoverTriggerEl);
     });
-  };
 
-  var highlightTerms = function (element, terms) {
-    var text = element.dataset.originalText;
-    if (text === undefined) {
-      text = element.textContent;
-      element.dataset.originalText = text;
+    var queryInput = document.querySelector('input[name="q"]');
+    var scopeSelect = document.querySelector('select[name="escopo"]');
+    var articleList = document.getElementById("lista-artigos");
+    var searchStatus = document.getElementById("resultado-busca");
+    var typeToggle = document.querySelector("[data-exclusive-types-toggle]");
+    var typeToggleStorageKey = "wikigov-exclusive-types";
+    var closeOtherTypes = localStorage.getItem(typeToggleStorageKey) !== "false";
+
+    var updateTypeToggle = function () {
+      if (!typeToggle) {
+        return;
+      }
+
+      typeToggle.setAttribute("aria-pressed", String(closeOtherTypes));
+      typeToggle.textContent = "Fechar outros Tipos ao abrir: " + (closeOtherTypes ? "ativado" : "desativado");
+    };
+
+    updateTypeToggle();
+    if (typeToggle) {
+      typeToggle.addEventListener("click", function () {
+        closeOtherTypes = !closeOtherTypes;
+        localStorage.setItem(typeToggleStorageKey, String(closeOtherTypes));
+        updateTypeToggle();
+      });
     }
 
-    if (!terms.length) {
-      element.textContent = text;
+    if (articleList) {
+      articleList.addEventListener("click", function (event) {
+        if (!closeOtherTypes) {
+          return;
+        }
+
+        var summary = event.target.closest("summary");
+        var type = summary && summary.parentElement;
+        var category = type && type.parentElement.closest("details");
+        if (!type || !category || getTypeLevel(type) !== 1) {
+          return;
+        }
+
+        window.setTimeout(function () {
+          if (!type.open || !closeOtherTypes) {
+            return;
+          }
+
+          Array.from(category.querySelectorAll(":scope > div > details")).forEach(function (sibling) {
+            if (sibling !== type) {
+              sibling.open = false;
+            }
+          });
+        }, 0);
+      });
+    }
+
+    if (document.getElementById("categoria-filtros") || !queryInput || !articleList || !searchStatus) {
       return;
     }
 
-    var normalizedText = "";
-    var characterRanges = [];
-    var offset = 0;
-
-    while (offset < text.length) {
-      var character = String.fromCodePoint(text.codePointAt(offset));
-      var start = offset;
-      offset += character.length;
-      var normalizedCharacter = normalize(character);
-      normalizedText += normalizedCharacter;
-
-      for (var index = 0; index < normalizedCharacter.length; index += 1) {
-        characterRanges.push({ start: start, end: offset });
+    function getTypeLevel(item) {
+      var depth = 0;
+      var parent = item.parentElement.closest("details");
+      while (parent) {
+        depth++;
+        parent = parent.parentElement.closest("details");
       }
+      return depth;
     }
 
-    var ranges = [];
-    terms.forEach(function (term) {
-      var position = normalizedText.indexOf(term);
-      while (position !== -1) {
-        var endPosition = position + term.length - 1;
-        ranges.push({
-          start: characterRanges[position].start,
-          end: characterRanges[endPosition].end
-        });
-        position = normalizedText.indexOf(term, position + term.length);
-      }
-    });
+    var details = Array.from(articleList.querySelectorAll("details"));
+    var initialOpenStates = new Map(details.map(function (item) {
+      return [item, item.open];
+    }));
 
-    ranges.sort(function (first, second) {
-      return first.start - second.start || second.end - first.end;
-    });
+    var serviceItems = Array.from(articleList.querySelectorAll(".service-item"));
 
-    var mergedRanges = [];
-    ranges.forEach(function (range) {
-      var previous = mergedRanges[mergedRanges.length - 1];
-      if (previous && range.start <= previous.end) {
-        previous.end = Math.max(previous.end, range.end);
-      } else {
-        mergedRanges.push({ start: range.start, end: range.end });
-      }
-    });
+    var normalize = function (text) {
+      return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+    };
 
-    element.replaceChildren();
-    var textOffset = 0;
-    mergedRanges.forEach(function (range) {
-      element.appendChild(document.createTextNode(text.slice(textOffset, range.start)));
-      var highlight = document.createElement("mark");
-      highlight.className = "search-highlight";
-      highlight.textContent = text.slice(range.start, range.end);
-      element.appendChild(highlight);
-      textOffset = range.end;
-    });
-    element.appendChild(document.createTextNode(text.slice(textOffset)));
-  };
-
-  // Função auxiliar para identificar o nível do details (0: Categoria, 1: Tipo, >=2: Subtipo)
-  var getDetailsLevel = function(item) {
-    var depth = 0;
-    var parent = item.parentElement.closest("details");
-    while (parent) {
-      depth++;
-      parent = parent.parentElement.closest("details");
-    }
-    return depth;
-  };
-
-  var filterArticles = function () {
-    var terms = normalize(queryInput.value.trim()).split(/\s+/).filter(Boolean);
-    var selectedScope = scopeSelect ? scopeSelect.value : "all";
-
-    // Reseta destaques dos summaries
-    details.forEach(function (item) {
-      var summary = item.querySelector(":scope > summary");
-      if (summary) {
-        highlightTerms(summary, []);
-      }
-    });
-
-    // 1. Filtra os artigos (service-items)
-    serviceItems.forEach(function (item) {
-      var title = item.querySelector("span");
-      var textContent = title ? title.textContent : item.textContent;
-      
-      var matches = false;
-      if (!terms.length) {
-        matches = true;
-      } else if (selectedScope === "service" || selectedScope === "all") {
-        matches = matchesTerms(textContent, terms);
-      } else {
-        // Se o escopo for por categoria/tipo/subtipo, a visibilidade do artigo acompanha o container
-        matches = true; 
-      }
-
-      item.hidden = terms.length > 0 && !matches;
-      if (terms.length && title && (selectedScope === "service" || selectedScope === "all")) {
-        highlightTerms(title, matches ? terms : []);
-      } else if (title) {
-        highlightTerms(title, []);
-      }
-    });
-
-    // 2. Filtra os blocos details (Categorias, Tipos e Subtipos) de baixo para cima
-    details.slice().reverse().forEach(function (item) {
-      var summary = item.querySelector(":scope > summary");
-      var summaryText = summary ? summary.textContent : "";
-      var level = getDetailsLevel(item);
-
-      var matchesSummary = terms.length === 0 || matchesTerms(summaryText, terms);
-
-      // Verifica se o bloco possui filhos visíveis (artigos ou subtipos internos)
-      var hasVisibleContent = Array.from(item.querySelectorAll(".service-item")).some(function (article) {
-        return !article.hidden && article.parentElement.closest("details") === item;
-      }) || Array.from(item.querySelectorAll("details")).some(function (sub) {
-        return !sub.hidden && sub.parentElement.closest("details") === item;
+    var matchesTerms = function (text, terms) {
+      var normalizedText = normalize(text);
+      return terms.length > 0 && terms.every(function (term) {
+        return normalizedText.includes(term);
       });
+    };
 
-      var shouldShow = false;
+    var highlightTerms = function (element, terms) {
+      var text = element.dataset.originalText;
+      if (text === undefined) {
+        text = element.textContent;
+        element.dataset.originalText = text;
+      }
 
-      if (terms.length === 0) {
-        shouldShow = true;
-      } else {
-        if (selectedScope === "service" || selectedScope === "all") {
-          // Tipos e subtipos só aparecem se tiverem artigos visíveis correspondentes
-          shouldShow = hasVisibleContent;
-        } else if (selectedScope === "category") {
-          if (level === 0) {
-            shouldShow = matchesSummary && hasVisibleContent;
-            if (shouldShow && summary) highlightTerms(summary, terms);
-          } else {
-            shouldShow = hasVisibleContent;
-          }
-        } else if (selectedScope === "type") {
-          if (level === 1) {
-            shouldShow = matchesSummary && hasVisibleContent;
-            if (shouldShow && summary) highlightTerms(summary, terms);
-          } else {
-            shouldShow = hasVisibleContent;
-          }
-        } else if (selectedScope === "subtype") {
-          // Restringe a busca estritamente ao nível de subtipo (level >= 2)
-          if (level >= 2) {
-            shouldShow = matchesSummary && hasVisibleContent;
-            if (shouldShow && summary) highlightTerms(summary, terms);
-          } else {
-            shouldShow = hasVisibleContent;
-          }
+      if (!terms.length) {
+        element.textContent = text;
+        return;
+      }
+
+      var normalizedText = "";
+      var characterRanges = [];
+      var offset = 0;
+
+      while (offset < text.length) {
+        var character = String.fromCodePoint(text.codePointAt(offset));
+        var start = offset;
+        offset += character.length;
+        var normalizedCharacter = normalize(character);
+        normalizedText += normalizedCharacter;
+
+        for (var index = 0; index < normalizedCharacter.length; index += 1) {
+          characterRanges.push({ start: start, end: offset });
         }
       }
 
-      item.hidden = !shouldShow;
-      item.open = terms.length > 0 ? !item.hidden : initialOpenStates.get(item);
+      var ranges = [];
+      terms.forEach(function (term) {
+        var position = normalizedText.indexOf(term);
+        while (position !== -1) {
+          var endPosition = position + term.length - 1;
+          ranges.push({
+            start: characterRanges[position].start,
+            end: characterRanges[endPosition].end
+          });
+          position = normalizedText.indexOf(term, position + term.length);
+        }
+      });
+
+      ranges.sort(function (first, second) {
+        return first.start - second.start || second.end - first.end;
+      });
+
+      var mergedRanges = [];
+      ranges.forEach(function (range) {
+        var previous = mergedRanges[mergedRanges.length - 1];
+        if (previous && range.start <= previous.end) {
+          previous.end = Math.max(previous.end, range.end);
+        } else {
+          mergedRanges.push({ start: range.start, end: range.end });
+        }
+      });
+
+      element.replaceChildren();
+      var textOffset = 0;
+      mergedRanges.forEach(function (range) {
+        element.appendChild(document.createTextNode(text.slice(textOffset, range.start)));
+        var highlight = document.createElement("mark");
+        highlight.className = "search-highlight";
+        highlight.textContent = text.slice(range.start, range.end);
+        element.appendChild(highlight);
+        textOffset = range.end;
+      });
+      element.appendChild(document.createTextNode(text.slice(textOffset)));
+    };
+
+    // Função auxiliar para identificar o nível do details (0: Categoria, 1: Tipo, >=2: Subtipo)
+    var getDetailsLevel = function (item) {
+      var depth = 0;
+      var parent = item.parentElement.closest("details");
+      while (parent) {
+        depth++;
+        parent = parent.parentElement.closest("details");
+      }
+      return depth;
+    };
+
+    var filterArticles = function () {
+      var terms = normalize(queryInput.value.trim()).split(/\s+/).filter(Boolean);
+      var selectedScope = scopeSelect ? scopeSelect.value : "all";
+
+      // Reseta destaques dos summaries
+      details.forEach(function (item) {
+        var summary = item.querySelector(":scope > summary");
+        if (summary) {
+          highlightTerms(summary, []);
+        }
+      });
+
+      // 1. Filtra os artigos (service-items)
+      serviceItems.forEach(function (item) {
+        var title = item.querySelector("span");
+        var textContent = title ? title.textContent : item.textContent;
+
+        var matches = false;
+        if (!terms.length) {
+          matches = true;
+        } else if (selectedScope === "service" || selectedScope === "all") {
+          matches = matchesTerms(textContent, terms);
+        } else {
+          // Se o escopo for por categoria/tipo/subtipo, a visibilidade do artigo acompanha o container
+          matches = true;
+        }
+
+        item.hidden = terms.length > 0 && !matches;
+        if (terms.length && title && (selectedScope === "service" || selectedScope === "all")) {
+          highlightTerms(title, matches ? terms : []);
+        } else if (title) {
+          highlightTerms(title, []);
+        }
+      });
+
+      // 2. Filtra os blocos details (Categorias, Tipos e Subtipos) de baixo para cima
+      details.slice().reverse().forEach(function (item) {
+        var summary = item.querySelector(":scope > summary");
+        var summaryText = summary ? summary.textContent : "";
+        var level = getDetailsLevel(item);
+
+        var matchesSummary = terms.length === 0 || matchesTerms(summaryText, terms);
+
+        // Verifica se o bloco possui filhos visíveis (artigos ou subtipos internos)
+        var hasVisibleContent = Array.from(item.querySelectorAll(".service-item")).some(function (article) {
+          return !article.hidden && article.parentElement.closest("details") === item;
+        }) || Array.from(item.querySelectorAll("details")).some(function (sub) {
+          return !sub.hidden && sub.parentElement.closest("details") === item;
+        });
+
+        var shouldShow = false;
+
+        if (terms.length === 0) {
+          shouldShow = true;
+        } else {
+          if (selectedScope === "service" || selectedScope === "all") {
+            // Tipos e subtipos só aparecem se tiverem artigos visíveis correspondentes
+            shouldShow = hasVisibleContent;
+          } else if (selectedScope === "category") {
+            if (level === 0) {
+              shouldShow = matchesSummary && hasVisibleContent;
+              if (shouldShow && summary) highlightTerms(summary, terms);
+            } else {
+              shouldShow = hasVisibleContent;
+            }
+          } else if (selectedScope === "type") {
+            if (level === 1) {
+              shouldShow = matchesSummary && hasVisibleContent;
+              if (shouldShow && summary) highlightTerms(summary, terms);
+            } else {
+              shouldShow = hasVisibleContent;
+            }
+          } else if (selectedScope === "subtype") {
+            // Restringe a busca estritamente ao nível de subtipo (level >= 2)
+            if (level >= 2) {
+              shouldShow = matchesSummary && hasVisibleContent;
+              if (shouldShow && summary) highlightTerms(summary, terms);
+            } else {
+              shouldShow = hasVisibleContent;
+            }
+          }
+        }
+
+        item.hidden = !shouldShow;
+        item.open = terms.length > 0 ? !item.hidden : initialOpenStates.get(item);
+      });
+
+      // 3. Atualiza contador e status da busca
+      var matchingArticles = serviceItems.filter(function (item) { return !item.hidden; }).length;
+      searchStatus.hidden = !terms.length;
+
+      if (terms.length) {
+        var categoryCount = details.filter(function (item) {
+          return !item.hidden && getDetailsLevel(item) === 0;
+        }).length;
+
+        searchStatus.textContent = categoryCount + (categoryCount === 1 ? " categoria e " : " categorias e ") +
+          matchingArticles + (matchingArticles === 1 ? " artigo encontrado." : " artigos encontrados.");
+      }
+    };
+
+    filterArticles();
+    queryInput.addEventListener("input", filterArticles);
+    if (scopeSelect) {
+      scopeSelect.addEventListener("change", filterArticles);
+    }
+  });
+</script>
+<style>
+  .site-footer {
+    position: relative;
+    overflow: hidden;
+    padding: 3.5rem 0 1.25rem;
+    color: #fff;
+    background: linear-gradient(125deg, #071d41, #0c326f 70%, #1351b4);
+  }
+
+  .site-footer::before {
+    position: absolute;
+    top: 0;
+    left: max(0px, calc((100% - 1320px) / 2));
+    width: 5rem;
+    height: 0.3rem;
+    background: #ffcd07;
+    content: "";
+  }
+
+  .site-footer__brand {
+    color: #fff;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .site-footer__description {
+    max-width: 29rem;
+    color: #dbeafe;
+    line-height: 1.7;
+  }
+
+  .site-footer__heading {
+    margin-bottom: 1rem;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .site-footer__link {
+    display: inline-block;
+    padding: 0.25rem 0;
+    color: #dbeafe;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .site-footer__link:hover {
+    transform: translateX(3px);
+    color: #ffcd07;
+  }
+
+  .site-footer__link:focus-visible,
+  .back-to-top:focus-visible,
+  .type-auto-close-toggle:focus-visible {
+    outline: 3px solid #ffcd07;
+    outline-offset: 4px;
+  }
+
+  .type-auto-close-toggle {
+    padding: 0.45rem 0.7rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 0.5rem;
+    background: transparent;
+  }
+
+  .site-footer__bottom {
+    margin-top: 2.5rem;
+    padding: 1.25rem 0 5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    color: #dbeafe;
+    font-size: 0.9rem;
+  }
+
+  .back-to-top {
+    position: fixed;
+    z-index: 1030;
+    right: max(1.25rem, env(safe-area-inset-right));
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.75rem 1rem;
+    border: 0;
+    border-radius: 999px;
+    color: #fff;
+    background: #1351b4;
+    box-shadow: 0 0.5rem 1.25rem rgba(7, 29, 65, 0.28);
+    font: inherit;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .back-to-top:hover {
+    transform: translateY(-2px);
+    background: #0c326f;
+  }
+
+  .back-to-top[hidden] {
+    display: none;
+  }
+
+  .back-to-top__icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  body.theme-dark .site-footer {
+    background: linear-gradient(125deg, #07111f, #111b2d 70%, #16233b);
+  }
+
+  body.theme-dark .site-footer .container,
+  body.theme-high-contrast .site-footer .container {
+    background-color: transparent !important;
+  }
+
+  body.theme-dark .back-to-top {
+    color: #03111d;
+    background: var(--button-primary);
+  }
+
+  body.theme-dark .back-to-top:hover {
+    background: var(--button-primary-hover);
+  }
+
+  body.theme-high-contrast .site-footer {
+    border-top: 2px solid #ffea00;
+    color: #fff;
+    background: #000;
+  }
+
+  body.theme-high-contrast .site-footer__description,
+  body.theme-high-contrast .site-footer__link,
+  body.theme-high-contrast .site-footer__bottom {
+    color: #fff;
+  }
+
+  body.theme-high-contrast .site-footer__link:hover {
+    color: #ffea00;
+  }
+
+  body.theme-high-contrast .back-to-top {
+    border: 2px solid #ffea00;
+    color: #000;
+    background: #ffea00;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-footer__link,
+    .back-to-top {
+      transition: none;
+    }
+  }
+</style>
+
+<footer class="site-footer mt-auto">
+  <div class="container position-relative">
+    <div class="row gy-4">
+      <div class="col-lg-6">
+        <a class="site-footer__brand text-decoration-none" href="/">WikiGov</a>
+        <p class="site-footer__description mt-3 mb-0">
+          Encontre informações e serviços públicos em um só lugar, com mais clareza e facilidade.
+        </p>
+      </div>
+    </div>
+
+    <div class="site-footer__bottom d-flex flex-column flex-sm-row justify-content-between gap-2">
+      <span>&copy; 2026 WikiGov. Todos os direitos reservados.</span>
+      <span>Informação pública, acessível para todos.</span>
+      <button class="site-footer__link type-auto-close-toggle" type="button" data-exclusive-types-toggle aria-pressed="true">
+        Fechar outros Tipos ao abrir: ativado
+      </button>
+    </div>
+  </div>
+</footer>
+
+<button class="back-to-top" type="button" aria-label="Voltar ao topo da página" data-back-to-top hidden>
+  <svg class="back-to-top__icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M8 13V3M3.5 7.5 8 3l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+  <span>Voltar ao topo</span>
+</button>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var backToTopButtons = document.querySelectorAll("[data-back-to-top]");
+    var floatingButton = document.querySelector(".back-to-top");
+
+    if (!floatingButton || !backToTopButtons.length) {
+      return;
+    }
+
+    var updateBackToTopVisibility = function () {
+      floatingButton.hidden = window.scrollY < 300;
+    };
+
+    backToTopButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        window.scrollTo({
+          top: 0,
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"
+        });
+      });
     });
 
-    // 3. Atualiza contador e status da busca
-    var matchingArticles = serviceItems.filter(function(item) { return !item.hidden; }).length;
-    searchStatus.hidden = !terms.length;
-    
-    if (terms.length) {
-      var categoryCount = details.filter(function (item) {
-        return !item.hidden && getDetailsLevel(item) === 0;
-      }).length;
-      
-      searchStatus.textContent = categoryCount + (categoryCount === 1 ? " categoria e " : " categorias e ") +
-        matchingArticles + (matchingArticles === 1 ? " artigo encontrado." : " artigos encontrados.");
-    }
-  };
-
-  filterArticles();
-  queryInput.addEventListener("input", filterArticles);
-  if (scopeSelect) {
-    scopeSelect.addEventListener("change", filterArticles);
-  }
-});
+    window.addEventListener("scroll", updateBackToTopVisibility, { passive: true });
+    updateBackToTopVisibility();
+  });
 </script>
-<footer class="container">
-    <div class="">
-        &copy; 2026- WikiGov - <a href="/privacy">Privacy</a>
-    </div>
-    <br>
-    <br>
-</footer>
 </body>
 
 </html>
