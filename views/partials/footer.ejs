@@ -1,4 +1,4 @@
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
 </script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -23,7 +23,7 @@
       }
 
       typeToggle.setAttribute("aria-pressed", String(closeOtherTypes));
-      typeToggle.textContent = "Fechar outros Tipos ao abrir: " + (closeOtherTypes ? "ativado" : "desativado");
+      typeToggle.textContent = "Fechar outras Categorias e Tipos ao abrir: " + (closeOtherTypes ? "ativado" : "desativado");
     };
 
     updateTypeToggle();
@@ -42,19 +42,29 @@
         }
 
         var summary = event.target.closest("summary");
-        var type = summary && summary.parentElement;
-        var category = type && type.parentElement.closest("details");
-        if (!type || !category || getTypeLevel(type) !== 1) {
+        var item = summary && summary.parentElement;
+        if (!item) {
           return;
         }
 
         window.setTimeout(function () {
-          if (!type.open || !closeOtherTypes) {
+          if (!item.open || !closeOtherTypes) {
             return;
           }
 
-          Array.from(category.querySelectorAll(":scope > div > details")).forEach(function (sibling) {
-            if (sibling !== type) {
+          var level = getTypeLevel(item);
+          if (level > 1) {
+            return;
+          }
+
+          var siblings = level === 0
+            ? Array.from(articleList.querySelectorAll("details")).filter(function (sibling) {
+              return getTypeLevel(sibling) === 0;
+            })
+            : Array.from(item.parentElement.querySelectorAll(":scope > details"));
+
+          siblings.forEach(function (sibling) {
+            if (sibling !== item) {
               sibling.open = false;
             }
           });
@@ -456,7 +466,7 @@
       <span>&copy; 2026 WikiGov. Todos os direitos reservados.</span>
       <span>Informação pública, acessível para todos.</span>
       <button class="site-footer__link type-auto-close-toggle" type="button" data-exclusive-types-toggle aria-pressed="true">
-        Fechar outros Tipos ao abrir: ativado
+        Fechar outras Categorias e Tipos ao abrir: ativado
       </button>
     </div>
   </div>

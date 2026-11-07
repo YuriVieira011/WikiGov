@@ -1,9 +1,11 @@
 const express = require("express");
 const path = require("path");
+const compression = require("compression");
 const app = express();
 
 // CONFIGURAÇÃO DO EJS
 app.set("view engine", "ejs");
+app.use(compression());
 
 app.set(
     "views",
