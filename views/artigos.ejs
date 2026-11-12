@@ -91,6 +91,25 @@
         font-size: 0.9rem;
       }
 
+      .filter-card .filter-multiple-toggle {
+        display: block;
+        width: 100%;
+        margin-top: 0.75rem;
+        color: var(--text-primary);
+        border-color: var(--border-color);
+      }
+
+      .filter-card .filter-multiple-toggle:hover {
+        transform: none;
+        color: var(--text-primary);
+        background-color: var(--bg-panel-alt);
+      }
+
+      .filter-card .filter-multiple-toggle:focus-visible {
+        outline: 3px solid var(--govbr-azul);
+        outline-offset: 3px;
+      }
+
       .filter-card .filter-group+.filter-group {
         margin-top: 0.85rem;
         padding-top: 0.85rem;
@@ -184,6 +203,9 @@
                 </button>
               </div>
               <p class="filter-intro mb-3">Sem seleção, todos os serviços são exibidos.</p>
+              <button class="site-footer__link type-auto-close-toggle filter-multiple-toggle" type="button" data-multiple-filters-toggle aria-pressed="false">
+                Seleção múltipla de filtros: desativada
+              </button>
 
               <details class="filter-group" open>
                 <summary class="fw-semibold">Categorias</summary>
@@ -238,6 +260,9 @@
         var categoryFilterList = document.getElementById("categoria-filtros");
         var typeFilterList = document.getElementById("tipo-filtros");
         var subtypeFilterList = document.getElementById("subtipo-filtros");
+        var multipleFiltersToggle = document.querySelector("[data-multiple-filters-toggle]");
+        var multipleFiltersStorageKey = "wikigov-multiple-filters";
+        var allowMultipleFilters = localStorage.getItem(multipleFiltersStorageKey) === "true";
         var glossary = {
           anuência: "Autorização ou concordância formal dada por uma pessoa ou órgão.",
           anistia: "Medida legal que perdoa uma infração ou encerra suas consequências.",
@@ -379,6 +404,16 @@
         var subtypeCheckboxes = createFilterCheckboxes(subtypeFilterList, allSubtypeNames, "subtype");
         var optionSearches = Array.from(document.querySelectorAll(".filter-option-search"));
         var clearFiltersButton = document.getElementById("limpar-filtros");
+        var updateMultipleFiltersToggle = function () {
+          if (!multipleFiltersToggle) {
+            return;
+          }
+
+          multipleFiltersToggle.setAttribute("aria-pressed", String(allowMultipleFilters));
+          multipleFiltersToggle.textContent = "Seleção múltipla de filtros: " + (allowMultipleFilters ? "ativada" : "desativada");
+        };
+
+        updateMultipleFiltersToggle();
 
         var details = Array.from(articleList.querySelectorAll("details"));
         var initialOpenStates = new Map(details.map(function (item) {
@@ -674,6 +709,7 @@
           var params = new URLSearchParams(window.location.search);
           var selectedCategory = cleanFilterValue(params.get("categoria"));
           var selectedType = cleanFilterValue(params.get("tipo"));
+          var typeNameContains = normalize(cleanFilterValue(params.get("tipoContem")));
           var selectedSubtype = cleanFilterValue(params.get("subtipo"));
 
           if (selectedCategory) {
@@ -682,9 +718,11 @@
             });
           }
 
-          if (selectedType) {
+          if (selectedType || typeNameContains) {
             typeCheckboxes.forEach(function (checkbox) {
-              checkbox.checked = normalize(checkbox.value) === normalize(selectedType);
+              var normalizedType = normalize(checkbox.value);
+              checkbox.checked = (selectedType && normalizedType === normalize(selectedType)) ||
+                (typeNameContains && normalizedType.includes(typeNameContains));
             });
           }
 
@@ -896,7 +934,7 @@
                 return input.dataset.filterSearch === checkbox.classList[2];
               });
               var searchTerm = optionSearch ? normalize(optionSearch.value.trim()) : "";
-              var isIrrelevant = visibleValues.length > 0 && visibleValues.indexOf(checkbox.value) === -1;
+              var isIrrelevant = !allowMultipleFilters && visibleValues.length > 0 && visibleValues.indexOf(checkbox.value) === -1;
               var doesNotMatchSearch = searchTerm && !normalize(checkbox.value).includes(searchTerm);
               wrapper.hidden = isIrrelevant || doesNotMatchSearch;
             });
@@ -935,6 +973,15 @@
             checkbox.addEventListener("change", filterArticles);
           });
         });
+
+        if (multipleFiltersToggle) {
+          multipleFiltersToggle.addEventListener("click", function () {
+            allowMultipleFilters = !allowMultipleFilters;
+            localStorage.setItem(multipleFiltersStorageKey, String(allowMultipleFilters));
+            updateMultipleFiltersToggle();
+            filterArticles();
+          });
+        }
 
         addServiceIcons();
         applyUrlFilters();

@@ -12,6 +12,7 @@ app.set(
     path.join(__dirname, "views")
 );
 
+app.use(express.static(path.join(__dirname, "public")));
 
 // MIDDLEWARES
 // Permite receber dados enviados por formulário
