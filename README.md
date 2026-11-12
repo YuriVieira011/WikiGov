@@ -33,3 +33,6 @@ npm install
 
 # Inicie o servidor
 npm start
+
+## Acesse o projeto pelo Vercel
+Acesse o projeto hospedado no Vercel através do seguinte link: https://wiki-gov.vercel.app/
