@@ -43,9 +43,12 @@ app.get("/", (req, res) => {
 });
 
 
-// SERVIDOR
-app.listen(3000, () => {
-    console.log(
-        "Servidor rodando em http://localhost:3000"
-    );
-});
+// SERVIDOR LOCAL
+if (require.main === module) {
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+        console.log(`Servidor rodando em http://localhost:${port}`);
+    });
+}
+
+module.exports = app;
